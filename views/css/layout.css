@@ -1,0 +1,228 @@
+#main_nav {
+	display: none;
+	background: #fff;
+	border: 0px;
+	border-top: 1px;
+	border-style: solid;
+	border-color: #ccc;
+}
+
+.with_nav #main_nav {
+	transition-delay: 1s;
+	display: block;
+}
+
+#div_visualization {
+	float: left;
+}
+
+/*#alt_view {
+	display: none;
+	float: left;
+	font-size: 1.0 rem;
+	width: 700px;
+	text-align: center;
+	text-transform: uppercase;
+}*/
+
+#div_table_view {
+	display: none;
+	float: left;
+	font-size: 1.0 rem;
+	width: 700px;
+	text-transform: uppercase;
+	margin: 0 40px 0 0;
+	border-collapse: collapse;
+	box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
+	-moz-box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
+	-webkit-box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
+	background-position: 0 -100px;
+	border: 1px #666;
+	margin-bottom: 25px;
+	padding-bottom: 15px;
+}
+
+.table_header1 {
+	float: left;
+	width: 80%;
+	box-shadow: 0 1px 1px -1px black;
+}
+
+.table_header2 {
+	float: left;
+	width: 20%;
+	box-shadow: 0 1px 1px -1px black;
+}
+
+.tableView_Tag_Uri {
+	width: 80%;
+	float: left;
+	padding-top: 10px;
+	color: #3CACE4;
+}
+
+.tableView_Tag_Count {
+	width: 20%;
+	float: left;
+	padding-top: 10px;
+	color: #3CACE4;
+}
+
+#div_info {
+	width: 700px;
+	float: left;
+	text-align: center;
+}
+
+#hint {
+	color: white;
+	background-color: #3CACE4;
+	padding: 10px;
+	display: none;
+}
+
+#dbpediaLink {
+	color: white;
+	background-color: #3CACE4;
+	padding: 10px;
+	display: none;
+}
+
+.my_selecItemButton {
+	height: 50px;
+	border: 0px;
+	border-right: 1px;
+	border-style: solid;
+	border-color: #ccc;
+	background: #3CACE4;
+	font-weight: bold;
+}
+
+.my_button_switch {
+	height: 50px;
+	border: 0px;
+	background: none;
+}
+
+.my_button_switch:hover {
+	transition-delay: 50ms;
+	transition-duration: 400ms;
+	background: #81B248;
+}
+
+.my_button {
+	height: 50px;
+	width: 100px;
+	border: 0px;
+	border-right: 1px;
+	border-style: solid;
+	border-color: #ccc;
+	background: none;
+	cursor: pointer;
+}
+
+.my_button:hover {
+	transition-delay: 50ms;
+	transition-duration: 400ms;
+	background: #81B248 !important;
+}
+
+my_button_connector {
+	color: #ccc;
+}
+
+path {
+	fill: #3CACE4;
+	stroke: #333;
+	stroke-width: 1.5px;
+	transition: fill 150ms linear;
+	transition-delay: 50ms;
+}
+
+path:hover {
+	fill: #81B248;
+	stroke: #000;
+	transition-delay: 0;
+}
+
+/*
+#viz_line {
+	fill: none;
+	stroke: #000;
+	stroke-width: 2px;
+}*/
+
+.viz_rect_for_table {
+	fill: #ccc;
+	stroke: #333;
+	stroke-width: 1.5px;
+	transition: fill 150ms linear;
+	transition-delay: 50ms;
+}
+
+.mark_competence {
+	background-color: #ffff99;
+}
+
+
+.user_info {
+	transition-delay: 500s;
+	text-transform: uppercase;
+	font-weight: bold;
+	box-shadow: 0 1px 1px -1px black;
+}
+
+#viz_rect_for_table:hover {
+	fill: #2c1; //
+	stroke-width: 3; //
+	stroke: rgb(0, 0, 0);
+}
+
+#chart, #infoTable {
+	border: 1px solid #333;
+}
+
+#chart {
+	display: block;
+	margin: 0 0 50px 0;
+	float: left;
+	cursor: pointer;
+}
+
+#infoTable {
+	margin: 0 40px 0 0;
+	border-collapse: collapse;
+	box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
+	-moz-box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
+	-webkit-box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
+	background-position: 0 -100px;
+}
+
+#infoTable th, #infoTable td {
+	padding: 0.5em;
+	border: 1px dotted #666;
+	text-align: left;
+}
+
+#infoTable th {
+	border-bottom: 2px solid #333;
+	text-transform: uppercase;
+}
+
+#infoTable td {
+	cursor: pointer;
+}
+
+#infoTable td.highlight {
+	background: #e8e8e8;
+}
+
+#infoTable tr:hover td {
+	background: #f0f0f0;
+}
+
+#viz_rect_for_table {
+	fill: #ccc;
+	stroke: #333;
+	stroke-width: 1.5px;
+}
