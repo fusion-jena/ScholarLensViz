@@ -57,3 +57,4 @@ Open your browser and go to http://localhost:3666/ - then you should see the use
 
 ## License
 The text mining pipeline is distributed under the terms of the GNU LGPL v3.0. (https://www.gnu.org/licenses/lgpl-3.0.en.html) You can find a copy of the license in the pipeline folder.
+
