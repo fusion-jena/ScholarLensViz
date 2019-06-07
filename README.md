@@ -1,6 +1,6 @@
 # ScholarLensViz
 This repository provides the source code for ScholarLensViz - an application that visualizes scholarly user profiles. 
-It is built on-top of ScholarLens (https://doi.org/10.7717/peerj-cs.121), a text-mining pipeline that extracts competences from a user's publications. The output of ScholarLens is a semantic user profile in an RDF graph with entries that are connected to the Linked Oepn Data (LOD) cloud. 
+It is built on-top of ScholarLens (https://doi.org/10.7717/peerj-cs.121), a text-mining pipeline that extracts competences from a user's publications. The output of ScholarLens is a semantic user profile in an RDF graph with entries that are connected to the Linked Open Data (LOD) cloud. 
 
 ## Prerequisites
 The user profiles created by ScholarLens needs to be added to a triple store, e.g., Apache Fuseki (https://jena.apache.org/documentation/fuseki2/). A REST API should be provided to be able to run SPARQL queries to obtain the competences.
@@ -40,7 +40,7 @@ GROUP BY ?uri ORDER BY DESC(?count)
 ```
 
 
-The knowledge base and dataset used need to be defined in the following file: /schema/getURICount.js
+The knowledge base and dataset used need to be defined in the following file: /schema/getURICount.js and /schema/getCompRecSentences.js
 An example configuration assuming that Fuseki is running on the default port 3030 looks like that: (quering a graph called 'profiles')
 
 ```var url ='http://localhost:3030/profiles/sparql';```
