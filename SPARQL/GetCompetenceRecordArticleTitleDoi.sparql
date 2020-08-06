@@ -1,0 +1,63 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>   
+PREFIX um: <http://intelleo.eu/ontologies/user-model/ns/>   
+PREFIX c:  <http://www.intelleo.eu/ontologies/competences/ns/>  
+PREFIX cnt: <http://www.w3.org/2011/content#>  
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>  
+PREFIX pubo: <http://lod.semanticsoftware.info/pubo/pubo#>  
+PREFIX sro: <http://salt.semanticauthoring.org/ontologies/sro#>  
+PREFIX oa: <http://www.w3.org/ns/oa#>  
+PREFIX doco: <http://purl.org/spar/doco/>
+
+SELECT DISTINCT ?articleTitle ?doi ?content ?my_sent_start ?my_sent_end ?competence ?competenceRecord ?topic ?my_topic_start ?my_topic_end WHERE{  
+   {  
+	SELECT DISTINCT ?articleTitle ?doi ?sentence ?competence ?competenceRecord WHERE {        
+		{  
+		  SELECT ?competenceRecord   WHERE{  
+			   ?creator rdf:type um:User .  
+			   ?creator rdfs:isDefinedBy <http://semanticsoftware.info/lodexporter/creator/R4> .       
+			   ?creator um:hasCompetencyRecord ?competenceRecord .  
+			   ?competenceRecord c:competenceFor ?competence .  
+			   ?competence rdfs:isDefinedBy <http://dbpedia.org/resource/Ontology>.  
+			   ?rhetoricalEntity rdf:type sro:RhetoricalElement .  
+			   ?rhetoricalEntity pubo:containsNE ?competence .  
+			   }  
+		  } 
+		   ?competenceRecord c:competenceFor ?competence .  
+		   ?sentence pubo:containsNE ?competence.
+           	   
+                   OPTIONAL{
+                         ?doc pubo:hasAnnotation ?sentence.
+                         ?doc pubo:hasAnnotation ?metaArticle.
+           	         ?metaArticle rdf:type doco:Title .
+          	         ?metaArticle cnt:chars ?articleTitle .
+      		   } .
+                   OPTIONAL{
+                       ?doc pubo:hasAnnotation ?sentence.
+                       ?doc pubo:hasAnnotation ?metaDOI.  
+           	       ?metaDOI rdf:type pubo:DOI .
+          	       ?metaDOI cnt:chars ?doi 
+      		}
+            
+		 }
+		}  
+   ?sentence cnt:chars ?content .  
+   ?sentence oa:start ?my_sent_start .  
+   ?sentence oa:end ?my_sent_end .  
+   ?competence cnt:chars ?topic .
+   ?competence oa:start ?my_topic_start . 
+   ?competence oa:end ?my_topic_end . 
+ 
+}ORDER by ?competenceRecord
+
+# 47 entries without articleTitle (expected result)
+# 282 entries with articleTitle (47 * 6 papers)
+
+
+SELECT DISTINCT ?doc ?articleTitle  WHERE{  
+  ?creator rdf:type um:User .  
+  ?creator rdfs:isDefinedBy <http://semanticsoftware.info/lodexporter/creator/R4> .       
+  ?corpus pubo:hasDocument ?doc.
+   ?doc pubo:hasAnnotation ?metaArticle.
+   ?metaArticle rdf:type doco:Title .
+   ?metaArticle cnt:chars ?articleTitle .
+}

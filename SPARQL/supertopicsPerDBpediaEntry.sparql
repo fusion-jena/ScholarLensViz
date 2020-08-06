@@ -1,0 +1,28 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX um: <http://intelleo.eu/ontologies/user-model/ns/>
+PREFIX c: <http://www.intelleo.eu/ontologies/competences/ns/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX pubo: <http://lod.semanticsoftware.info/pubo/pubo#>
+PREFIX sro: <http://salt.semanticauthoring.org/ontologies/sro#>
+PREFIX doco: <http://purl.org/spar/doco/>
+
+SELECT DISTINCT ?superTopicEq
+WHERE{
+{
+SELECT DISTINCT ?uri WHERE{
+?creator rdf:type um:User .
+?creator rdfs:isDefinedBy <http://semanticsoftware.info/lodexporter/creator/R4> .
+?creator um:hasCompetencyRecord ?competenceRecord .
+?competenceRecord c:competenceFor ?competence .
+?competence rdfs:isDefinedBy ?uri .
+?rhetoricalEntity rdf:type sro:RhetoricalElement .
+?rhetoricalEntity pubo:containsNE ?competence .
+}
+     LIMIT 50
+}
+     ?CSOEntry <http://www.w3.org/2002/07/owl#sameAs> ?uri.
+     ?CSOEntry <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://cso.kmi.open.ac.uk/schema/cso#Topic> .
+     ?CSOEntry <http://cso.kmi.open.ac.uk/schema/cso#preferentialEquivalent> ?CSOTopic.
+     ?superTopic <http://cso.kmi.open.ac.uk/schema/cso#superTopicOf> ?CSOTopic .
+     ?superTopic <http://cso.kmi.open.ac.uk/schema/cso#preferentialEquivalent> ?superTopicEq.
+}

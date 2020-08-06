@@ -1,0 +1,118 @@
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">	</head>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="css/custom.css" >
+
+
+	</head>
+
+	<body onload="getURLs(); getResearchers()">
+	    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+     
+          <a class="navbar-brand" href="team.html">Team</a>
+				  <a class="navbar-brand" href="project.html">Project</a>
+				  <a class="navbar-brand" href="help.html">Help</a>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="jumbotron">
+      <div class="container" >
+	  <div class="row" >
+        <div class="col-md-4"><img src="images/logoWithBlackName2.png" class="img-responsive" width="70%"/></div>
+		<div class="col-md-8" style="margin-top:1em">
+			<h1>Semantic : Profiles : Visualization</h1>
+			<p>Inspect scholarly user profiles generated from publications! </p>
+			<div class="dropdown show">
+				<a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Select a Scholar
+				</a>
+
+				<div id="dropdown-menu" class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+				</div>
+			</div>
+		</div>
+
+	 </div>
+	 </div>
+
+      </div>
+
+
+
+    <div class="container">
+      <!-- Example row of columns -->
+      <div class="row">
+	    <div class="col-md-6">
+          <h2>Motivation</h2>
+          <p>Personalized applications are a two-edged sword: They assist users to keep the focus on relevant topics but they are often black boxes. In particular for research, transparency and provenance are essential. Therefore, we developed <i>ScholarLensViz</i>, a framework that allows the visualization of semantic user profiles based on a scholar's publications.</p>
+    	  <p><a class="btn btn-primary" href="project.html" role="button">Learn more</a></p>
+        </div>
+        <div class="col-md-6">
+          <h2>About</h2>
+          <p><i>ScholarLensViz</i> provides different visualizations for semantic user profiles. Explanations for all profile entries are provided based on techniques from <a class="textlink" href="http://dbpedia.org/page/Natural_language_processing" target="_blanck">Natural Language Processing</a> and <a class="textlink" href="http://dbpedia.org/page/Semantic_web" target="_blanck">Semantic Web.</a> <i>ScholarLensViz</i> is the second component developed on top of the formely provided <i>ScholarLens</i> text mining pipeline that generates semantic user profiles.</p>
+		  <p><a class="btn btn-primary" href="project.html" role="button">Get publications</a></p>
+        </div>
+
+      </div>
+
+      <footer id="footer">
+
+      </footer>
+    </div>
+		<script>
+			// function to load file containing the Fuseki-URLs
+			var url_data = null;
+			function getURLs() {
+				$.ajax({
+					dataType: "json",
+					url: "http://localhost:3666/localKnowledgeBase.json",
+					async: false,
+					success: function(data) {
+						url_data = data;
+					}
+				});
+			}
+
+			function getResearchers() {
+				$.ajax({
+					dataType: "json",
+					url: url_data["node"] + "/researchers.json",
+					async: false,
+					success: function(data) {
+						var dropdown = document.getElementById("dropdown-menu");
+						for(index in data["researchers"]) {
+							var option = document.createElement("a");
+							var researcher_id = data["researchers"][index][0];
+							var researcher_name = data["researchers"][index][1];
+							var affiliation = data["researchers"][index][2];
+							var researcher_site = data["researchers"][index][3];
+							option.setAttribute("class", "dropdown-item");
+							option.setAttribute("href", "indexPie.html?researcher_id=" + researcher_id + "&researcher_name=" + researcher_name + "&affiliation=" + affiliation + "&researcher_site=" + researcher_site + "&fuseki=" + url_data["fuseki"] + "&node=" + url_data["node"]);
+							option.innerHTML = researcher_name;
+							dropdown.append(option);
+						}
+					}
+				});
+			}
+
+
+		</script>
+		<!-- Bootstrap core JavaScript
+		================================================== -->
+		<!-- Placed at the end of the document so the pages load faster -->
+		<!--<script type="text/javascript" src="https://kit.fontawesome.com/a076d05399.js"></script>-->
+		<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+<script>$(document).ready(function() {
+                $("#header").load("header.html");
+                $("#footer").load("footer.html");
+            });</script>
+</body>
+</html>

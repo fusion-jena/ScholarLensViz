@@ -1,0 +1,202 @@
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	</head>
+	<body onload="buildGraph();setResearcher()">
+		<div id="loading" class="d-flex justify-content-center" style="margin-top: 50vh">
+			<div class="spinner-grow text-primary" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-secondary" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-success" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-danger" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-warning" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-info" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-light" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+		</div>
+				<nav class="navbar navbar-inverse navbar-fixed-top">
+					<div class="container" id="header" style="display:none">
+					
+					</div>
+					<div id="researcher_div">
+					</div>
+				</nav>
+				<hr>
+				<!--</div>-->
+				<div id="widget-container" class="container-fluid" style="display:none">
+				<div class="row">
+					<div class="col-md-6">
+							<!--<div id="div_left">-->
+							   <div class="row">
+						         <div class="col-md-12">
+
+										<div id="div_force_graph"></div>
+
+								 </div>
+							    </div>
+								<div class="row">
+								   <div class="col-md-12">
+								      <div id="toggle_button_div">
+											<p>
+											<a id="toggle_button" class="btn btn-primary" onclick="toggleThresholds()" role="button"><span>Display settings</span></a>
+											<a id="reload_button" class="btn btn-primary" onclick="reloadGraph();" role="button">Reload graph</a>
+											</p>
+									
+									  </div>
+								   </div>
+									
+								 </div>
+								<div class="row">
+								   <div class="col-md-12">
+									<div id="div_threshold">
+
+										<div id="div_table_threshold" class="table-responsive">
+											<table id="table_threshold" class="table table-bordered">
+												<tr>
+													<td >Display</td>
+													<td><label for="con_line"><canvas id="con_line" height="20" width="80"></canvas> (strong similarity)</td>
+													<td><label for="dash_line"><canvas id="dash_line" height="20" width="80"></canvas> (medium similarity)</td>
+													<td><label for="dashdash_line"><canvas id="dashdash_line" height="20" width="80"></canvas> (slight similarity)</td>
+												</tr>
+												<tr>
+													<td >Upper threshold </td>
+													<td ><input type="text" id="con_lineU" name="greenu" class="form-control input-lg input-search"></td>
+													<td ><input type="text" id="dash_lineU" name="goldu" class="form-control input-lg input-search"></td>
+													<td ><input type="text" id="dashdash_lineU" name="redu" class="form-control input-lg input-search"></td>
+												</tr>
+												<tr>
+													<td >Lower threshold </td>
+													<td><input type="text" id="con_lineL" name="greenl" class="form-control input-lg input-search"></td>
+													<td ><input type="text" id="dash_lineL" name="goldl" class="form-control input-lg input-search"></td>
+													<td ><input type="text" id="dashdash_lineL" name="redl" class="form-control input-lg input-search"></td>
+												</tr>
+											</table>
+										</div>
+									</div>
+								  </div>
+								</div>
+						<br/><hr>
+							<!--</div>-->
+					</div>
+					<div class="col-md-6">
+							<div class="row">
+								<div class="col-md-12">
+								    <br/>
+									<div id="div_reload_graph_btn">
+										<p><a id="reload_button" class="btn btn-primary" onclick="reloadGraph();" role="button">Reload graph</a></p>
+									  </div>
+								</div>
+							</div>
+						<div class="row">
+							<div class="col-md-12">
+								<div id="div_info">
+								<div class="hintSemSim">
+								Inspect the diversity of a scholar's profile and have a look how semantically related the entries are!
+								Select some profile entries and reload the graph. We compute the semantic similarity values with <a class="textlink" href="https://github.com/gsi-upm/sematch" target="_blanck">sematch</a>.
+								The category is obtained from the <a href="https://cso.kmi.open.ac.uk" target="blank">CSO Ontology</a>.
+								Click on one node to inspect the individual connections.
+								</div>
+									<div id="div_table_view"></div>
+								</div>
+							</div>
+						</div>
+					
+					</div>
+				 </div>
+				<div class="row">
+						<div class="col-md-12">
+								<footer id="footer"></footer>
+						</div>
+					</div>
+				</div>
+
+		<script>
+			var cc = document.getElementById("con_line");
+			var cc_tx = cc.getContext("2d");
+			cc_tx.beginPath();
+			cc_tx.moveTo(10, 15);
+			cc_tx.lineTo(80, 15);
+			cc_tx.strokeStyle = "black";
+			cc_tx.lineWidth  = 4;
+			cc_tx.stroke();
+
+			var cc = document.getElementById("dash_line");
+			var cc_tx = cc.getContext("2d");
+			cc_tx.beginPath();
+			cc_tx.moveTo(10, 15);
+			cc_tx.lineTo(80, 15);
+			cc_tx.strokeStyle = "dimgrey";
+			cc_tx.lineWidth  = 4;
+			cc_tx.setLineDash([10, 5]);
+			cc_tx.stroke();
+
+			var cc = document.getElementById("dashdash_line");
+			var cc_tx = cc.getContext("2d");
+			cc_tx.beginPath();
+			cc_tx.moveTo(10, 15);
+			cc_tx.lineTo(80, 15);
+			cc_tx.strokeStyle = "lightslategrey";
+			cc_tx.lineWidth  = 4;
+			cc_tx.setLineDash([5, 9]);
+			cc_tx.stroke();
+
+			function toggleThresholds() {
+				var toggle = document.getElementById("div_table_threshold");
+				var button = document.getElementById("toggle_button");
+				if(toggle.style.display == "none") {
+					button.innerHTML = "<span>Hide settings</span>";
+					toggle.style.display = "inline-block";
+				} else {
+					button.innerHTML = "<span>Display settings</span>";
+					toggle.style.display = "none";
+				}
+			}
+
+			function changePage(page) {
+				var researcher_id = new URLSearchParams(window.location.search).get("researcher_id");
+				var researcher_name = new URLSearchParams(window.location.search).get("researcher_name");
+				var affiliation = new URLSearchParams(window.location.search).get("affiliation");
+				var researcher_site = new URLSearchParams(window.location.search).get("researcher_site");
+				var fuseki = new URLSearchParams(window.location.search).get("fuseki");
+				var node = new URLSearchParams(window.location.search).get("node");
+				window.location.href = page + "?researcher_id=" + researcher_id + "&researcher_name=" + researcher_name + "&affiliation=" + affiliation + "&researcher_site=" + researcher_site + "&fuseki=" + fuseki + "&node=" + node;
+			}
+
+			function setResearcher() {
+				var researcher_name = new URLSearchParams(window.location.search).get("researcher_name");
+				var affiliation = new URLSearchParams(window.location.search).get("affiliation");
+				var researcher_site = new URLSearchParams(window.location.search).get("researcher_site");
+				document.getElementById("researcher_div").innerHTML = "Scholar: " + researcher_name + " | Affiliation: <a href=\"" + researcher_site + "\" target=\"_blank\">" + affiliation + "</a>";
+			}
+		</script>
+		<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">	</head>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.11/jquery.csv.js"></script>
+		<script src="https://d3js.org/d3.v4.js"></script>
+		<script type="text/javascript" src="https://kit.fontawesome.com/a076d05399.js"></script>
+		<link type="text/css" rel="stylesheet" href="css/graph_page.css"></link>
+		<script type="text/javascript" src="js/scriptGraph.js"></script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="css/custom.css" >
+	</body>
+</html>

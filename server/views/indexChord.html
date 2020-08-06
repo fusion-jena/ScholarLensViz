@@ -1,0 +1,123 @@
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	</head>
+	<body onload="buildChord();setResearcher()">
+		<div id="loading" class="d-flex justify-content-center" style="margin-top: 50vh">
+			<div class="spinner-grow text-primary" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-secondary" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-success" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-danger" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-warning" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-info" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-light" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+		</div>
+					<nav class="navbar navbar-inverse navbar-fixed-top">
+					      <div class="container" id="header" style="display:none">
+			
+						</div>
+						<div id="researcher_div">
+						</div>
+					  </nav>
+					  <hr>
+				
+				<div id="widget-container" class="container-fluid" style="display:none">
+				<div class="row">
+					<div class="col-md-6">
+						
+							   <div class="row">
+						         <div class="col-md-12">
+								    <div id="div_chord_chart"></div>
+								 </div>
+							</div>
+							</br>
+							<div class="row">
+									<div class="col-md-12">
+								 <div id="div_chord_table"></div>
+							</div>
+					 </div>
+					</div>
+					<div class="col-md-6">
+							
+								<div class="row">
+						         <div class="col-md-12">
+									<div id="div_reload_chord_btn"><p><a class="btn btn-primary" onclick="reloadChord();" role="button">Reload Chart</a></p></div>
+								 </div>
+							   </div>
+							   <div class="row">
+
+						         <div class="col-md-12">
+								 <div class="hintSemSim">
+								Inspect the diversity of a scholar's profile and have a look how semantically related the entries are!
+								Select some profile entries and reload the chord chart. Hover over a concept to see the individual relations.
+								The accumulated semantic similarity/relateness values influence the length of the outer arc.
+								The semantic similarity values are computed with <a class="textlink" href="https://github.com/gsi-upm/sematch" target="_blanck">sematch</a>.
+								</div>
+								   <div id="div_table_view"></div>
+
+								 </div>
+							   </div>
+
+					</div>
+				</div>
+
+				<div class="row">
+				<div class="col-md-12">
+					<footer id="footer">
+					
+					</footer>
+				</div>
+				</div>
+			 </div>
+
+		<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.11/jquery.csv.js"></script>
+		<script src="https://d3js.org/d3.v4.js"></script>
+		<script type="text/javascript" src="https://kit.fontawesome.com/a076d05399.js"></script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">	</head>
+		<link type="text/css" rel="stylesheet" href="css/chord_page.css"></link>
+		<script type="text/javascript" src="js/scriptChord.js"></script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="css/custom.css" >
+		<script>
+			function changePage(page) {
+				var researcher_id = new URLSearchParams(window.location.search).get("researcher_id");
+				var researcher_name = new URLSearchParams(window.location.search).get("researcher_name");
+				var affiliation = new URLSearchParams(window.location.search).get("affiliation");
+				var researcher_site = new URLSearchParams(window.location.search).get("researcher_site");
+				var fuseki = new URLSearchParams(window.location.search).get("fuseki");
+				var node = new URLSearchParams(window.location.search).get("node");
+				window.location.href = page + "?researcher_id=" + researcher_id + "&researcher_name=" + researcher_name + "&affiliation=" + affiliation + "&researcher_site=" + researcher_site + "&fuseki=" + fuseki + "&node=" + node;
+			}
+
+			function setResearcher() {
+				var researcher_name = new URLSearchParams(window.location.search).get("researcher_name");
+				var affiliation = new URLSearchParams(window.location.search).get("affiliation");
+				var researcher_site = new URLSearchParams(window.location.search).get("researcher_site");
+				document.getElementById("researcher_div").innerHTML = "Scholar: " + researcher_name + " | Affiliation: <a href=\"" + researcher_site + "\" target=\"_blank\">" + affiliation + "</a>";
+			}
+		</script>
+	</body>
+</html>

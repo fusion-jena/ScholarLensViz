@@ -1,0 +1,5 @@
+{
+"fuseki": "http://localhost:3030/ScholarLensViz",
+"node": "https://dev.gfbio.org/scholar"
+
+}

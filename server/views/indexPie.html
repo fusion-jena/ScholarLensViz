@@ -1,0 +1,119 @@
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+
+
+	</head>
+
+	<body onload="buildPie();setResearcher()">
+		<div id="loading" class="d-flex justify-content-center" style="margin-top: 50vh">
+			<div class="spinner-grow text-primary" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-secondary" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-success" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-danger" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-warning" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-info" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<div id="space"></div>
+			<div class="spinner-grow text-light" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+		</div>
+					 <nav class="navbar navbar-inverse navbar-fixed-top">
+					 <div class="container" id="header" style="display:none">
+
+					</div>
+					<div id="researcher_div">
+					</div>
+					</nav>
+					<hr>
+				<!--<div id="widget-container">-->
+				  <div id="widget-container" class="container-fluid" style="display:none">
+				    <div class="row">
+						<div class="col-md-6">
+							<div id="div_left">
+							   <div class="row">
+						         <div class="col-md-12">
+								<div id="div_visualization"></div>
+								</div>
+								</div>
+								<div class="row">
+						         <div class="col-md-12">
+								<div id="label_div">
+								<div id="label_header">All comments are obtained from DBpedia.</div>
+								<div id="label_comment"></div>
+								<div id="label_ref"></div>
+								</div>
+								</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-6">
+						    <div id="div_info">
+								<div id="main_nav" role="group">
+									<button id="btn_Sources" type="button" class="my_button"
+										onclick="display_comment(this.id);">Provenance</button>
+									<button id="btn_Table" type="button" class="my_button"
+										onclick="display_comment(this.id);">Competences</button>
+								</div>
+								<div id="hint"></div>
+								<div id="div_table"></div>
+								<div id="div_table_view"></div>
+					      </div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-12">
+								<footer id="footer"></footer>
+						</div>
+					</div>
+				</div>
+
+
+		<script>
+			function changePage(page) {
+				var researcher_id = new URLSearchParams(window.location.search).get("researcher_id");
+				var researcher_name = new URLSearchParams(window.location.search).get("researcher_name");
+				var affiliation = new URLSearchParams(window.location.search).get("affiliation");
+				var researcher_site = new URLSearchParams(window.location.search).get("researcher_site");
+				var fuseki = new URLSearchParams(window.location.search).get("fuseki");
+				var node = new URLSearchParams(window.location.search).get("node");
+				window.location.href = page + "?researcher_id=" + researcher_id + "&researcher_name=" + researcher_name + "&affiliation=" + affiliation + "&researcher_site=" + researcher_site + "&fuseki=" + fuseki + "&node=" + node;
+			}
+
+			function setResearcher() {
+				var researcher_name = new URLSearchParams(window.location.search).get("researcher_name");
+				var affiliation = new URLSearchParams(window.location.search).get("affiliation");
+				var researcher_site = new URLSearchParams(window.location.search).get("researcher_site");
+				document.getElementById("researcher_div").innerHTML = "Scholar: " + researcher_name + " | Affiliation: <a href=\"" + researcher_site + "\" target=\"_blank\">" + affiliation + "</a>";
+			}
+		</script>
+		<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">	</head>
+		<script type="text/javascript" src="https://kit.fontawesome.com/a076d05399.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+		<link type="text/css" rel="stylesheet" href="css/pie_page.css"></link>
+		<script type="text/javascript" src="js/scriptPie.js"></script>
+	    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="css/custom.css" >
+	</body>
+</html>

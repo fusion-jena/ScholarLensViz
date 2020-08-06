@@ -1,0 +1,4 @@
+{
+  "fuseki": "http://localhost:3030/ScholarLensViz",
+  "node": "http://localhost:3666"
+}
