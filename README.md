@@ -17,8 +17,7 @@ We compute the semantic similarity with [sematch](https://github.com/gsi-upm/sem
 
 
 ## ScholarLensViz Installation
-We provide the node_modules folder in order to avoid version conflicts. However, in order to resolve dependency conflicts open a console, 
-download ScholarLensViz, navigate to the ScholarLensViz/server folder and run 
+At first, download ScholarLensViz, open a console, navigate to the ScholarLensViz/server folder and resolve dependency conflicts:
 
 ```npm install```
 
