@@ -1,8 +1,10 @@
 <html>
 	<head>
+		<title>ChordChart - ScholarLensViz</title>
+		<link rel="icon" href="images/favicon.ico" type="image/x-icon">
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 	</head>
-	<body onload="buildChord();setResearcher()">
+	<body onload="loadSite();setResearcher()">
 		<div id="loading" class="d-flex justify-content-center" style="margin-top: 50vh">
 			<div class="spinner-grow text-primary" role="status">
 				<span class="sr-only">Loading...</span>
@@ -32,19 +34,32 @@
 				<span class="sr-only">Loading...</span>
 			</div>
 		</div>
-					<nav class="navbar navbar-inverse navbar-fixed-top">
+		<!--<div id="page" style="display:none;">-->
+			<!--<div style="min-width: 1500px; margin: 0 auto;">-->
+				<!--<div class="jumbotron jumbotron-fluid">
+					<div class="container-fluid">
+						<div id="share_header">-->
+						<nav class="navbar navbar-inverse navbar-fixed-top">
 					      <div class="container" id="header" style="display:none">
-			
+							<!--<img id="logo" src="images/logo.png" class="img-responsive"/>
+							<a class="button_IE" href="index.html" id="home" rel="nofollow noopener" data-title="Return to the home page"><i class="fas fa-home"></i></a>
+							<a class="button_IE" onclick="changePage('indexPie.html')" id="pie"  rel="nofollow noopener" data-title="Load the Pie Chart"><i class="fas fa-chart-pie"></i></a>
+							<a class="button_IE" onclick="changePage('indexGraph.html')" id="graph" rel="nofollow noopener" data-title="Load the Force-directed Graph"><i class="fas fa-project-diagram"></i></a>
+							<a class="button_IE" onclick="changePage('indexChord.html')" id="chord" rel="nofollow noopener" data-title="Reload the Chord Chart"><i class="fas fa-record-vinyl"></i></a>
+						-->
+						<!--</div>-->
+						  <!--<div id="div_user_info"></div>-->
 						</div>
-						<div id="researcher_div">
+						<div id="researcher_div" style="max-width:225px">
 						</div>
 					  </nav>
 					  <hr>
-				
+					<!--</div>
+				</div>-->
 				<div id="widget-container" class="container-fluid" style="display:none">
 				<div class="row">
-					<div class="col-md-6">
-						
+					<div class="col-sm-12 col-lg-6">
+							<!--<div id="div_left">-->
 							   <div class="row">
 						         <div class="col-md-12">
 								    <div id="div_chord_chart"></div>
@@ -53,15 +68,20 @@
 							</br>
 							<div class="row">
 									<div class="col-md-12">
+								 <div id="div_chord_source"></div>
+							</div>
+					 </div>
+							<div class="row">
+									<div class="col-md-12">
 								 <div id="div_chord_table"></div>
 							</div>
 					 </div>
 					</div>
-					<div class="col-md-6">
-							
+					<div class="col-sm-12 col-lg-6">
+							<!--<div id="div_left">-->
 								<div class="row">
 						         <div class="col-md-12">
-									<div id="div_reload_chord_btn"><p><a class="btn btn-primary" onclick="reloadChord();" role="button">Reload Chart</a></p></div>
+									<div id="div_reload_chord_btn"><p><a class="btn btn-primary" onclick="reloadChord();goToTop();" role="button"><i class="fas fa-sync"></i> Reload Chart</a></p></div>
 								 </div>
 							   </div>
 							   <div class="row">
@@ -77,19 +97,31 @@
 
 								 </div>
 							   </div>
-
+								 <div class="row">
+ 						         <div class="col-md-12">
+ 									<div id="div_reload_chord_btn"><p><a class="btn btn-primary" onclick="reloadChord();goToTop();" role="button"><i class="fas fa-sync"></i> Reload Chart</a></p></div>
+ 								 </div>
+ 							   </div>
 					</div>
 				</div>
+
+				<!--<div id="widget-container">
+					<div id="div_chord_chart"entities></div>
+					<div id="div_info"entities>
+						<div id="div_table_view"entities></div>
+						<div id="div_reload_chord_btn"entities><a class="button_IE" onclick="reloadChord();">Reload Chart</a></div>
+					</div>
+				</div>-->
 
 				<div class="row">
 				<div class="col-md-12">
 					<footer id="footer">
-					
+						<!--<p>&copy; 2020 fusion group @Friedrich Schiller University Jena</p>-->
 					</footer>
 				</div>
 				</div>
 			 </div>
-
+		<!--</div>-->
 		<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
@@ -103,20 +135,26 @@
 		<link rel="stylesheet" href="css/custom.css" >
 		<script>
 			function changePage(page) {
-				var researcher_id = new URLSearchParams(window.location.search).get("researcher_id");
-				var researcher_name = new URLSearchParams(window.location.search).get("researcher_name");
-				var affiliation = new URLSearchParams(window.location.search).get("affiliation");
-				var researcher_site = new URLSearchParams(window.location.search).get("researcher_site");
-				var fuseki = new URLSearchParams(window.location.search).get("fuseki");
-				var node = new URLSearchParams(window.location.search).get("node");
-				window.location.href = page + "?researcher_id=" + researcher_id + "&researcher_name=" + researcher_name + "&affiliation=" + affiliation + "&researcher_site=" + researcher_site + "&fuseki=" + fuseki + "&node=" + node;
+				var id = new URLSearchParams(window.location.search).get("id")
+				window.location.href = page + "?id=" + id;
+			}
+
+			function loadSite() {
+				var id = new URLSearchParams(window.location.search).get("id")
+				var infos = JSON.parse(sessionStorage.getItem(id));
+				buildChord(infos[0], infos[4], infos[5]);
 			}
 
 			function setResearcher() {
-				var researcher_name = new URLSearchParams(window.location.search).get("researcher_name");
-				var affiliation = new URLSearchParams(window.location.search).get("affiliation");
-				var researcher_site = new URLSearchParams(window.location.search).get("researcher_site");
-				document.getElementById("researcher_div").innerHTML = "Scholar: " + researcher_name + " | Affiliation: <a href=\"" + researcher_site + "\" target=\"_blank\">" + affiliation + "</a>";
+				var id = new URLSearchParams(window.location.search).get("id")
+				var infos = JSON.parse(sessionStorage.getItem(id));
+				document.getElementById("researcher_div").innerHTML = "Scholar: " + infos[1] + " | Affiliation: <a href=\"" + infos[3] + "\" target=\"_blank\">" + infos[2] + "</a>";
+			}
+
+			// When the user clicks on the button, scroll to the top of the document
+			function goToTop() {
+			  document.body.scrollTop = 0;
+			  document.documentElement.scrollTop = 0;
 			}
 		</script>
 	</body>

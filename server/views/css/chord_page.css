@@ -35,6 +35,20 @@
 	padding-bottom: 15px;
 }
 
+#div_chord_source {
+  /*float: left;*/
+ font-size: 1.0 rem;
+ /*width: 700px;*/
+ /*text-transform: uppercase;*/
+ border-collapse: collapse;
+ box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
+ -moz-box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
+ -webkit-box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
+ background-position: 0 -100px;
+ border: 1px #666;
+ margin-bottom: -14px;
+}
+
 #div_chord_table {
 	/*float: left;*/
 	font-size: 1.0 rem;
@@ -46,10 +60,14 @@
 	-webkit-box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
 	background-position: 0 -100px;
 	border: 1px #666;
-	margin-bottom: 5px;
-	padding-bottom: 15px;
-  overflow: auto;
   max-height: 850px;
+  overflow: auto;
+}
+
+#div_chord_table th {
+  position: sticky;
+  top: 0;
+  background-color: white;
 }
 
 .titles{

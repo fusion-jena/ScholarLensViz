@@ -1,11 +1,11 @@
 <html>
 	<head>
+		<title>PieChart - ScholarLensViz</title>
+		<link rel="icon" href="images/favicon.ico" type="image/x-icon">
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
-
-
 	</head>
 
-	<body onload="buildPie();setResearcher()">
+	<body onload="loadSite();setResearcher()">
 		<div id="loading" class="d-flex justify-content-center" style="margin-top: 50vh">
 			<div class="spinner-grow text-primary" role="status">
 				<span class="sr-only">Loading...</span>
@@ -39,14 +39,14 @@
 					 <div class="container" id="header" style="display:none">
 
 					</div>
-					<div id="researcher_div">
+					<div id="researcher_div" style="max-width:225px">
 					</div>
 					</nav>
 					<hr>
 				<!--<div id="widget-container">-->
 				  <div id="widget-container" class="container-fluid" style="display:none">
 				    <div class="row">
-						<div class="col-md-6">
+						<div class="col-sm-12 col-lg-6">
 							<div id="div_left">
 							   <div class="row">
 						         <div class="col-md-12">
@@ -64,7 +64,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="col-md-6">
+						<div class="col-sm-12 col-lg-6">
 						    <div id="div_info">
 								<div id="main_nav" role="group">
 									<button id="btn_Sources" type="button" class="my_button"
@@ -85,24 +85,22 @@
 						</div>
 					</div>
 				</div>
-
-
 		<script>
 			function changePage(page) {
-				var researcher_id = new URLSearchParams(window.location.search).get("researcher_id");
-				var researcher_name = new URLSearchParams(window.location.search).get("researcher_name");
-				var affiliation = new URLSearchParams(window.location.search).get("affiliation");
-				var researcher_site = new URLSearchParams(window.location.search).get("researcher_site");
-				var fuseki = new URLSearchParams(window.location.search).get("fuseki");
-				var node = new URLSearchParams(window.location.search).get("node");
-				window.location.href = page + "?researcher_id=" + researcher_id + "&researcher_name=" + researcher_name + "&affiliation=" + affiliation + "&researcher_site=" + researcher_site + "&fuseki=" + fuseki + "&node=" + node;
+				var id = new URLSearchParams(window.location.search).get("id");
+				window.location.href = page + "?id=" + id;
+			}
+
+			function loadSite() {
+				var id = new URLSearchParams(window.location.search).get("id");
+				var infos = JSON.parse(sessionStorage.getItem(id));
+				buildPie(infos[0], infos[1], infos[4], infos[5]);
 			}
 
 			function setResearcher() {
-				var researcher_name = new URLSearchParams(window.location.search).get("researcher_name");
-				var affiliation = new URLSearchParams(window.location.search).get("affiliation");
-				var researcher_site = new URLSearchParams(window.location.search).get("researcher_site");
-				document.getElementById("researcher_div").innerHTML = "Scholar: " + researcher_name + " | Affiliation: <a href=\"" + researcher_site + "\" target=\"_blank\">" + affiliation + "</a>";
+				var id = new URLSearchParams(window.location.search).get("id");
+				var infos = JSON.parse(sessionStorage.getItem(id));
+				document.getElementById("researcher_div").innerHTML = "Scholar: " + infos[1] + " | Affiliation: <a href=\"" + infos[3] + "\" target=\"_blank\">" + infos[2] + "</a>";
 			}
 		</script>
 		<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

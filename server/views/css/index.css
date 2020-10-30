@@ -63,3 +63,13 @@ i{
 .footerIcons a:hover{
 	color:#000;
 }
+
+#footer {
+  display: block;
+}
+
+#dropdown-menu {
+    height: auto;
+    max-height: 250px;
+    overflow-x: hidden;
+}

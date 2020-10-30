@@ -1,23 +1,10 @@
 // get the researcher specified in the URL
-var researcher = new URLSearchParams(window.location.search).get("researcher_id");
+var researcher = null;
 // get the fuseki adress specified in the URL
-var fuseki = new URLSearchParams(window.location.search).get("fuseki");
+var fuseki = null;
 // get the node adress specified in the URL
-var node = new URLSearchParams(window.location.search).get("node");
-
-// load file containing the values of the competences
+var node = null;
 var csv_data = null;
-$.ajax({
-  url: node + "/competences/" + researcher + ".csv",
-  async: false,
-  success: function(data) {
-    csv_data = $.csv.toObjects(data);
-  },
-  error: function(data) {
-	console.log("No sematic similarity values available for researcher "+ researcher + ".")
-	csv_data = 0;
- }
-});
 
 // Define the global variables
 var mouse_pos_X = 0, mouse_pos_Y = 0, my_query_data = '', my_query_data_test, my_active_id, line_height_shift = 10, namespace = 'http://semanticsoftware.info/lodexporter/creator/', response = '', transition_Delay = 700,  initialNumber = 8, maximum_number = 25;
@@ -26,7 +13,26 @@ var colors = d3.scaleOrdinal(d3.schemeCategory20);
  * Main Function Description: This function is called from the page load on the
  * index.html file. It draw the pie chart and table.
  */
-function buildChord() {
+function buildChord(current_researcher_id, current_fuseki, current_node) {
+  // get the researcher specified in the URL
+  researcher = current_researcher_id;
+  // get the fuseki adress specified in the URL
+  fuseki = current_fuseki;
+  // get the node adress specified in the URL
+  node = current_node;
+
+  // load file containing the values of the competences
+  $.ajax({
+    url: node + "/competences/" + researcher + ".csv",
+    async: false,
+    success: function(data) {
+      csv_data = $.csv.toObjects(data);
+    },
+    error: function(data) {
+    	console.log("No sematic similarity values available for researcher "+ researcher + ".")
+    	csv_data = 0;
+   }
+  });
 
 	/* get the information by SPARQL query. The output is in JSON format.
 		We need the competence name and number to draw the chord. */
@@ -37,8 +43,36 @@ function buildChord() {
 	/* since we want to show all competences in the table but not in chord, so we need to run SPARQL query two times with two different number of competences */
 	my_query_data_table_data = my_query_data.results.bindings;
 
-  
+  /*var cat_map = {};
+  // loop over all URIs and get their categories
+  for(var i=0; i<my_query_data_table_data.length; i++) {
+    // get the first URI
+    var elm = my_query_data_table_data[i];
+    var  myUri = elm["uri"].value;
+    cat_map[myUri] = [];*/
+//**************start Category Information ******************//
+    //Limit is set to 10 (do we have URIs with more than 10 categories?)
+    /*my_query_category = get_category('getCategory',researcher, myUri, 10);
+    var categories = my_query_category.results.bindings;
+    var category = "none";
+    // check if the URI has at least one category
+    if(categories.length > 0) {
+      // loop over all categories of the given URI
+      for(var j = 0; j < categories.length; j++) {
+        // get the category name and add it to the category map
+        cat_uri = categories[j]["superTopicEq"]["value"].split("/");
+        category = cat_uri[cat_uri.length-1];
+        cat_map[myUri].push(category)
+      }
+    }*/
+// ************* end Category Information ********************//
+//}
 
+  // add the abbreviations of the each concept to the first column
+  // first two letters plus '_' plus last two letters
+  //my_query_data_table_data = addAbbreviations(my_query_data_table_data);
+  // add the category view to the table
+  //my_query_data_table_data = addCategories(my_query_data_table_data, cat_map);
   // convert the query data  to a HTML table
   var all_names = [];
   for(var i=0; i < my_query_data_table_data.length; i++) {
@@ -135,6 +169,12 @@ function buildChord() {
 		}
 	}
 
+  document.getElementById('div_chord_source').innerHTML = "<table class=\"table table-bordered\">" +
+                                                            "<tr>" +
+                                                              "<th>Source</th>" +
+                                                              "<th>" + value_map.keys().next().value + "</th>" +
+                                                            "</tr>" +
+                                                          "</table>";
   document.getElementById('div_chord_table').innerHTML = buildChordTable(value_map.keys().next().value);
   // loop over the matrix
   for(var i=0; i<matrix.length; i++) {
@@ -199,6 +239,12 @@ var outerArcs = svg.selectAll("g.group")
   .attr("class", "group")
   .on("mouseover.fade", fade(.1))
   .on("mouseover.tooltip", function(d, i) {
+    document.getElementById('div_chord_source').innerHTML = "<table class=\"table table-bordered\">" +
+                                                              "<tr>" +
+                                                                "<th>Source</th>" +
+                                                                "<th>" + names[d.index] + "</th>" +
+                                                              "</tr>" +
+                                                            "</table>";
     document.getElementById('div_chord_table').innerHTML = buildChordTable(names[d.index]);
   })
   .on("mouseout", fade(opacityDefault))
@@ -373,7 +419,73 @@ function mouseoutChord(d) {
         } else if(colName == "count") {
           bodyRows += "<td class=\"align-middle\">" + row[colName].value.toString() + "</td>";
         // else, add the respective categories of the concept to the HTML table as the third column
-      } 
+      } /*else {
+          bodyRows += "<td class=\"align-middle\" height=\"40\" width=\"100\">";
+          var value = row[colName].value.toString();
+          var check_cat = value.split(" ")
+          // get the category that is shown by default
+          var uri = row["uri"].value.toString().split(" ")[0];
+          // get only the name of the concept (without the URL)
+          var short_uri = uri.split("/")[uri.split("/").length-1];
+          // check if the concept has multiple categories (denoted by '[cat_list]')
+          if(check_cat.length > 1 && check_cat[1] == "[cat_list]") {
+            // retrieve all categories of the given concept
+            var cat_list = categories[uri];
+            // loop over all categories and add them to a dropdown menu in the HTML table
+            for(var i = 0; i < cat_list.length; i++) {
+              var category = cat_list[i];
+              // show the first category by default
+              if(i == 0) {
+                // add the first category as the default option (displayed) in the dropdown menu
+                bodyRows += "<div class=\"dropdown\">";
+                // shorten category name to the first 20 letters (plus '...')
+                // to avoid that the category name stretches outside the table
+                var short_cat = category.toUpperCase();
+                if(category.length > 20) {
+                  var short_cat = category.substr(0,20).toUpperCase() + "...";
+                }
+
+                // set the tooltip of the selected category to display the full name when hovering over the shortened name
+                bodyRows += "<button name=\"category\" id=\"" + short_uri + "_tool\" class=\"btn btn-secondary dropdown-toggle\" data-toggle=\"dropdown\" title=\"" + category.toUpperCase() + "\">" + short_cat + "</button>";
+                bodyRows += "<div class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuButton\">";
+              }
+
+              // add the current category as an option in the dropdown menu
+              bodyRows += "<button id=\"" + short_uri + "___" + category + "\" class=\"dropdown-item\">" + category.toUpperCase() + "</button>";
+              // function to change the displayed category to the clicked one and change the color of the respective concept
+              $("#div_table_view").on("click", "#" + short_uri + "___" + category, function(event) {
+                // get the concept and its category
+                var func_uri = event.target.id.split("___")[0];
+                var func_cat = event.target.id.split("___")[1].toUpperCase();
+                // access the tooltip element
+                var func_tooltip = document.getElementById(func_uri + "_tool");
+                var func_short_cat = func_cat;
+                // shorten the shown category name as before
+                if(func_cat.length > 20) {
+                  func_short_cat = func_cat.substr(0,20) + "...";
+                }
+
+                // set the displayed name to the shortened version
+                func_tooltip.innerHTML = func_short_cat;
+              });
+            }
+          } else {
+            // shorten category name to the first 20 letters (plus '...')
+            // to avoid that the category name stretches outside the table
+            // furthermore, if the name doesn't have to be shortened (less than 10 letter),
+            // the tooltip also doesn't have to be set
+            // (hovering over the category won't display the full name since the full name is already displayed)
+            var short_cat = value.toUpperCase();
+            if(value.length > 20) {
+              var short_cat = value.substr(0,20).toUpperCase() + "...";
+            }
+
+            // set the tooltip of the selected category to display the full name when hovering over the shortened name
+            bodyRows += "<div name=\"category\" id=\"single_category\" class=\"btn btn-secondary dropdown-toggle;disabled\" title=\"" + value.toUpperCase() + "\">" + short_cat + "</div>";
+          }
+
+          bodyRows += "</div></div></td>";
+        }*/
       });
 
       bodyRows += "</tr>";
@@ -382,22 +494,155 @@ function mouseoutChord(d) {
 
     return headerRow + bodyRows + "</div>";
 
+    //////////////////////////////////////////////
+    //////////////// old table code //////////////
+    //////////////////////////////////////////////
+
+		/*var headerRow = '';
+		var bodyRows = '';
+		classes = classes || '';
+		function capitalizeFirstLetter(string) {
+			return string.charAt(0).toUpperCase() + string.slice(1);
+		}
+
+    // the header row for the checkboxed, concepts, their counts and their categories
+		headerRow += '<div class=\"table_Chord_header0\">Show</div>';
+		headerRow += '<div class=\"table_Chord_header1\">'
+				+ capitalizeFirstLetter(cols[0]) + '</div>';
+		headerRow += '<div class=\"table_Chord_header2\">'
+				+ capitalizeFirstLetter(cols[1]) + '</div>';
+    headerRow += '<div class=\"table_Chord_header3\">'
+				+ 'Category</div>';
+
+		var currentNum = 0;
+    // loop over the rows and columns of the query json data
+		json.map(function(row) {
+			cols.map(function(colName) {
+				value = '';
+        // if the current column is the URI,
+        // add a checkbox as the first column and the link of the URI concept to DBPedia site as the second column to the HTML table
+				if (colName == "uri") {
+					var value = row[colName].value.toString().split("/")[4];
+					bodyRows += '<div><div class=\"tableView_Chord_Tag_Checkbox\" ><input name=\"chord_checkbox\" type=\"checkbox\" ';
+          // if the current row number is less than the number of initial competences,
+          // set the checkbox to checked
+					if (currentNum < initialNumber){
+						bodyRows += 'id=\"'+ String(value) + '\" checked></div><div class=\"tableView_Chord_Tag_Uri\" id=\"';
+						bodyRows += String(value);
+						bodyRows += '\">\t'
+								+ "<a href=\"http://dbpedia.org/resource/" + value.split(" ")[0] + "\" target=\"_blank\">" + value + "</div>";
+						currentNum = currentNum + 1;
+          // else, leave the checkbox unchecked
+					} else {
+						bodyRows += '<div id=\"'+ String(value) + '\"></div><div class=\"tableView_Chord_Tag_Uri\" id=\"';
+						bodyRows += String(value);
+						bodyRows += '\">\t'
+								+ "<a href=\"http://dbpedia.org/resource/" + value.split(" ")[0] + "\" target=\"_blank\">" + value + "</a></div>";
+					}
+        // if the current column is the count,
+        // add the count of the concept to the HTML table as the second column
+				} else if(colName == "count") {
+					var value = row[colName].value.toString();
+					bodyRows += '<div class=\"tableView_Chord_Tag_Count\" >'
+							+ value + '</div></div>';
+        // else, add the respective categories of the concept to the HTML table as the third column
+				} else {
+          value = row[colName].value.toString();
+          var check_cat = value.split(" ")
+          // check if the concept has multiple categories (denoted by '[cat_list]')
+          if(check_cat.length > 1 && check_cat[1] == "[cat_list]") {
+            // get the category that is shown by default
+            var uri = check_cat[0];
+            // get only the name of the concept (without the URL)
+            var short_uri = uri.substr(28);
+            // retrieve all categories of the given concept
+            var cat_list = categories[uri];
+            // loop over all categories and add them to a dropdown menu in the HTML table
+            for(var i = 0; i < cat_list.length; i++) {
+              var category = cat_list[i];
+              // show the first category by default
+              if(i == 0) {
+                // shorten category name to the first 20 letters (plus '...')
+                // to avoid that the category name stretches outside the table
+                var short_cat = category;
+                if(category.length >= 10) {
+                  short_cat = category.substr(0,10) + "...";
+                }
+
+                // set the tooltip of the selected category to display the full name when hovering over the shortened name
+                tooltip_value = "<div id=\"" + short_uri + "\" class=\"tableView_Chord_Tag_Category\" data-toggle=\"tooltip\" data-placement=\"left\" title=\"" + category.toUpperCase() + "\">"
+      							+ short_cat.toUpperCase() + "</div>";
+                // add the first category as the default option (displayed) in the dropdown menu
+                bodyRows += "<div><button name=\"category\" class=\"btn btn-secondary dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">"
+                    + tooltip_value + "</button><div class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuButton\">";
+              }
+
+              // add the current category as an option in the dropdown menu
+              bodyRows += "<button id=\"" + short_uri + "___" + category + "\" class=\"dropdown-item\">" + category.toUpperCase() + "</button>";
+              // function to change the displayed category to the clicked one and change the color of the respective concept
+              $("#div_table_view").on("click", "#" + short_uri + "___" + category, function(event) {
+                // get the concept and its category
+                var func_uri = event.target.id.split("___")[0];
+                var func_cat = event.target.id.split("___")[1].toUpperCase();
+                // access the tooltip element
+                var func_tooltip = document.getElementById(func_uri);
+                var func_short_cat = func_cat;
+                // shorten the shown category name as before
+                if(func_cat.length >= 10) {
+                  func_short_cat = func_cat.substr(0,10) + "...";
+                }
+
+                // function to show the full name of the shortened category when hovering over it
+                $("#" + func_uri).tooltip().attr("data-original-title", func_cat);
+                // set the displayed name to the shortened version
+                func_tooltip.innerHTML = func_short_cat;
+              });
+            }
+
+            bodyRows += "</div></div>";
+          // else, the concept has only one category (including 'None')
+          } else {
+            // shorten category name to the first 20 letters (plus '...')
+            // to avoid that the category name stretches outside the table
+            // furthermore, if the name doesn't have to be shortened (less than 10 letter),
+            // the tooltip also doesn't have to be set
+            // (hovering over the category won't display the full name since the full name is already displayed)
+            var short_value = value;
+            var tooltip_value = value;
+            if(value.length >= 10) {
+              short_value = value.substr(0,10) + "...";
+              // set the tooltip of the selected category to display the full name when hovering over the shortened name
+              tooltip_value = "<div class=\"tableView_Graph_Tag_Category\" data-toggle=\"tooltip\" data-placement=\"left\" title=\"" + value.toUpperCase() + "\">"
+                  + short_value.toUpperCase() + "</div>";
+            }
+
+            // add the first category as the default option (displayed) in the dropdown menu
+            bodyRows += "<div><div id=\"single_category\" name=\"category\" class=\"btn btn-secondary\">"
+                + tooltip_value + "</div></div>";
+          }
+        }
+			});
+		});
+
+    // function to set/activate the tooltip (hovering over the category will display the full name)
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    });
+
+    // return the entire table with the header row and the remaining body rows as a HTML element
+		return '<div style=\" float: both; font-weight: bold; padding-top: 5px;\">'
+				+ headerRow + '</div>' + bodyRows;*/
 	}
 
   // method to build the table with all targets and their values given by a source
   function buildChordTable(source) {
-    var headerRow = "<div class=\"table-responsive\">" +
-                      "<table class=\"table table-bordered\">" +
-                        "<tr>" +
-                          "<th scope=\"col\">Source</th>" +
-                          "<th scope=\"col\">" + source + "</th>" +
-                        "</tr>";
-    headerRow += "<tr>" +
-                   "<th scope=\"col\">Target</th>" +
-                   "<th scope=\"col\">Similarity</th>" +
-                   "<th scope=\"col\">Relatedness</th>" +
-                   "<th scope=\"col\">value</th>" +
-                 "</tr>";
+    var headerRow = "<table class=\"table table-bordered\">" +
+                       "<tr>" +
+                         "<th scope=\"col\">Target</th>" +
+                         "<th scope=\"col\">Similarity</th>" +
+                         "<th scope=\"col\">Relatedness</th>" +
+                         "<th scope=\"col\">value</th>" +
+                       "</tr>";
     var bodyRows = "";
     for(var [target, value] of value_map.get(source).entries()) {
       bodyRows += "<tr>";
@@ -412,7 +657,7 @@ function mouseoutChord(d) {
                   "<td>" + rel_rounded + "</td><td>" + val_rounded + "</td></tr>";
     }
 
-    return headerRow + bodyRows + "</table></div>";
+    return headerRow + bodyRows + "</table>";
   }
 
   //document.getElementById("page").style.display = "block";
@@ -640,6 +885,12 @@ function reloadChord(){
 		}
 	}
 
+  document.getElementById('div_chord_source').innerHTML = "<table class=\"table table-bordered\">" +
+                                                            "<tr>" +
+                                                              "<th>Source</th>" +
+                                                              "<th>" + data_chord[0] + "</th>" +
+                                                            "</tr>" +
+                                                          "</table>";
   document.getElementById('div_chord_table').innerHTML = buildChordTable(data_chord[0]);
   // loop over the matrix
   for(var i=0; i<matrix.length; i++) {
@@ -703,6 +954,12 @@ var outerArcs = svg.selectAll("g.group")
   .attr("class", "group")
   .on("mouseover.fade", fade(.1))
   .on("mouseover.tooltip", function(d, i) {
+    document.getElementById('div_chord_source').innerHTML = "<table class=\"table table-bordered\">" +
+                                                              "<tr>" +
+                                                                "<th>Source</th>" +
+                                                                "<th>" + names[d.index] + "</th>" +
+                                                              "</tr>" +
+                                                            "</table>";
     document.getElementById('div_chord_table').innerHTML = buildChordTable(names[d.index]);
   })
   .on("mouseout", fade(opacityDefault))
@@ -770,18 +1027,13 @@ svg.selectAll("path.chord")
 
 // method to build the table with all targets and their values given by a source
 function buildChordTable(source) {
-  var headerRow = "<div class=\"table-responsive\">" +
-                    "<table class=\"table table-bordered header-fixed\">" +
-                      "<tr>" +
-                        "<th scope=\"col\">Source</th>" +
-                        "<th scope=\"col\">" + source + "</th>" +
-                      "</tr>";
-  headerRow += "<tr>" +
-                 "<th scope=\"col\">Target</th>" +
-                 "<th scope=\"col\">Similarity</th>" +
-                 "<th scope=\"col\">Relatedness</th>" +
-                 "<th scope=\"col\">value</th>" +
-               "</tr>";
+  var headerRow = "<table class=\"table table-bordered\">" +
+                     "<tr>" +
+                       "<th scope=\"col\">Target</th>" +
+                       "<th scope=\"col\">Similarity</th>" +
+                       "<th scope=\"col\">Relatedness</th>" +
+                       "<th scope=\"col\">value</th>" +
+                     "</tr>";
   var bodyRows = "";
   for(var [target, value] of value_map.get(source).entries()) {
     bodyRows += "<tr>";
@@ -796,7 +1048,7 @@ function buildChordTable(source) {
                 "<td>" + rel_rounded + "</td><td>" + val_rounded + "</td></tr>";
   }
 
-  return headerRow + bodyRows + "</table></div>";
+  return headerRow + bodyRows + "</table>";
 }
 
 function popup() {

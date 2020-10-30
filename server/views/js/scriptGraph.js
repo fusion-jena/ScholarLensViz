@@ -1,23 +1,10 @@
 // get the researcher specified in the URL
-var researcher = new URLSearchParams(window.location.search).get("researcher_id");
+var researcher = null;
 // get the fuseki adress specified in the URL
-var fuseki = new URLSearchParams(window.location.search).get("fuseki");
+var fuseki = null;
 // get the node adress specified in the URL
-var node = new URLSearchParams(window.location.search).get("node");
-
-// load file containing the values of the competences
+var node = null;
 var csv_data = null;
-$.ajax({
-  url: node + "/competences/" + researcher + ".csv",
-  async: false,
-  success: function(data) {
-    csv_data = $.csv.toObjects(data);
-  },
-  error: function(data) {
-	console.log("No sematic similarity values available for researcher "+ researcher + ".")
-	csv_data = 0;
- }
-});
 
 // Define the global variables
 var mouse_pos_X = 0, mouse_pos_Y = 0, my_query_data = '', my_query_data_test, my_active_id, line_height_shift = 10, namespace = 'http://semanticsoftware.info/lodexporter/creator/', response = '', transition_Delay = 700,  initialNumber = 8, maximum_number = 25;
@@ -33,7 +20,26 @@ var previous_selected_node = null;
  * Main Function Description: This function is called from the page load on the
  * index.html file. It draws the force-directed graph and table.
  */
-function buildGraph() {
+function buildGraph(current_researcher_id, current_fuseki, current_node) {
+  // get the researcher specified in the URL
+  researcher = current_researcher_id;
+  // get the fuseki adress specified in the URL
+  fuseki = current_fuseki;
+  // get the node adress specified in the URL
+  node = current_node;
+  // load file containing the values of the competences
+  $.ajax({
+    url: node + "/competences/" + researcher + ".csv",
+    async: false,
+    success: function(data) {
+      csv_data = $.csv.toObjects(data);
+    },
+    error: function(data) {
+    	console.log("No sematic similarity values available for researcher "+ researcher + ".")
+    	csv_data = 0;
+   }
+  });
+
 	/* get the information by SPARQL query. The output is in JSON format.
 		We need the competence name and number to draw the graph. */
 
@@ -70,8 +76,8 @@ function buildGraph() {
     // for each entity take the first two and last two letters as the label
     var label = myUri.substr(28).toUpperCase(); //(myUri.substr(28).substr(0,2) + "_" + myUri.substr(28).substr(myUri.substr(28).length-2)).toUpperCase();
     // add the label to the nodes
-    var node = {"id": label, "group": category};
-    all_nodes.push(node);
+    var graph_node = {"id": label, "group": category};
+    all_nodes.push(graph_node);
 // ************* end Category Information ********************//
   }
 
@@ -140,8 +146,8 @@ function buildGraph() {
     // for each entity take the first two and last two letters as the label
     var label = myUri1; //(myUri1.substr(0,2) + "_" + myUri1.substr(myUri1.length-2)).toUpperCase();
     // add the label to the nodes
-    var node = {"id": label, "group": category};
-    nodes.push(node);
+    var graph_node = {"id": label, "group": category};
+    nodes.push(graph_node);
     // loop a second time over the selected entities to retrieve the pairs
 		for (var j=0; j<data_graph.length; j++) {
       // get the second URI
@@ -273,7 +279,11 @@ function buildGraph() {
                              .attr("fill", function(d) {
                                return d.group != "none" ? group_colors(d.group) : "dimgrey";
                              })
-                             .attr("r", 6);
+                             .attr("r", 6)
+                             .call(d3.drag()
+                                .on("start", dragStarted)
+                                .on("drag", dragged)
+                                .on("end", dragEnded));
 
   // add the labels of the selected entities to the canvas
   var textElements = svg.append("g")
@@ -288,7 +298,11 @@ function buildGraph() {
                              //.style("stroke", "black")
                              //.style("stroke-width", "5px")
                              .attr("dx", -35)
-                             .attr("dy", -13);
+                             .attr("dy", -13)
+                             .call(d3.drag()
+                                .on("start", dragStarted)
+                                .on("drag", dragged)
+                                .on("end", dragEnded));
 
   // add a hover window to display the values of the links
   var toolTip = d3.select("body")
@@ -307,8 +321,8 @@ function buildGraph() {
       .attr("cx", function(d) {return d.x = Math.max(radius, Math.min(width - radius, d.x));})
       .attr("cy", function(d) {return d.y = Math.max(radius, Math.min(height - radius, d.y));});
     textElements
-      .attr("x", node => node.x)
-      .attr("y", node => node.y);
+      .attr("x", graph_node => graph_node.x)
+      .attr("y", graph_node => graph_node.y);
   });
 
   // set the links
@@ -323,47 +337,47 @@ function buildGraph() {
 
   // function to set the color of the node depending on its category
   // if no category is avaiable, set it to grey
-  function getGroupColor(node) {
-	if(all_nodes[node] === undefined)
+  function getGroupColor(graph_node) {
+	if(all_nodes[graph_node] === undefined)
 		return "dimgrey";
 	else
-    return all_nodes[node].group != "none" ? group_colors(all_nodes[node].group) : "dimgrey";
+    return all_nodes[graph_node].group != "none" ? group_colors(all_nodes[graph_node].group) : "dimgrey";
   }
 
   // function to return all nodes that are connected with the selected node
-  function getNeighbors(node) {
+  function getNeighbors(graph_node) {
     return links.reduce((neighbors, link) => {
-      if(link.target.id == node.id) {
+      if(link.target.id == graph_node.id) {
         neighbors.push(link.source.id);
-      } else if(link.source.id == node.id) {
+      } else if(link.source.id == graph_node.id) {
         neighbors.push(link.target.id);
       }
       return neighbors;
-    }, [node.id]);
+    }, [graph_node.id]);
   }
 
   // function to check if two nodes are connected
-  function isNeighborLink(node, link) {
-    return link.target.id == node.id || link.source.id == node.id;
+  function isNeighborLink(graph_node, link) {
+    return link.target.id == graph_node.id || link.source.id == graph_node.id;
   }
 
   // function to the change the color of the nodes
   // if no connection between the node and the selected node exists, change the color of the node to white
-  function getNodeColor(node, neighbors, selectedNode) {
-    return neighbors.indexOf(node.id) > -1 ? getGroupColor(node.index) : "white";
+  function getNodeColor(graph_node, neighbors, selectedNode) {
+    return neighbors.indexOf(graph_node.id) > -1 ? getGroupColor(graph_node.index) : "white";
   }
 
   // function to the change the color of the labels
   //  if no connection exists, change the color to burlyWood
-  function getTextColor(node, neighbors) {
-    return neighbors.indexOf(node.id) > -1 ? "black" : "burlyWood";
+  function getTextColor(graph_node, neighbors) {
+    return neighbors.indexOf(graph_node.id) > -1 ? "black" : "burlyWood";
   }
 
   // function to set the width of the links
   // if the node is connected to the selected node, change the size of the width to 3
   // else if no connection exists, change the width to the link to 0
-  function getLinkStroke(node, link) {
-    return isNeighborLink(node, link) ? 3 : 0;
+  function getLinkStroke(graph_node, link) {
+    return isNeighborLink(graph_node, link) ? 3 : 0;
   }
 
   // function to change the color of the nodes and labels and the width of the links
@@ -375,18 +389,18 @@ function buildGraph() {
     if(previous_selected_node == selectedNode) {
       previous_selected_node = null;
       nodeElements
-        .attr("fill", node => getGroupColor(node.index));
+        .attr("fill", graph_node => getGroupColor(graph_node.index));
       textElements
-        .attr("fill", node => "black");
+        .attr("fill", graph_node => "black");
       linkElements
         .attr("stroke-width", link => 3);
     } else {
       previous_selected_node = selectedNode;
       var neighbors = getNeighbors(selectedNode);
       nodeElements
-        .attr("fill", node => getNodeColor(node, neighbors, selectedNode));
+        .attr("fill", graph_node => getNodeColor(graph_node, neighbors, selectedNode));
       textElements
-        .attr("fill", node => getTextColor(node, neighbors));
+        .attr("fill", graph_node => getTextColor(graph_node, neighbors));
       linkElements
         .attr("stroke-width", link => getLinkStroke(selectedNode, link));
     }
@@ -406,6 +420,30 @@ function buildGraph() {
     var val_rounded = Math.round((value + Number.EPSILON) * 1000) / 1000;
     toolTip.html("Similarity: " + sim_rounded + "<br>Relatedness: " + rel_rounded + "<br>Value: " + val_rounded);
     toolTip.style("visibility", "visible");
+  }
+
+
+  function dragStarted(d) {
+    if (!d3.event.active) {
+      simulation.alphaTarget(1).restart();
+    }
+
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+
+  function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+  }
+
+  function dragEnded(d) {
+    if(!d3.event.active) {
+      simulation.alphaTarget(0);
+    }
+
+    d.fx = null;
+    d.fy = null;
   }
 
 // ################################################################################################
@@ -466,8 +504,8 @@ function buildGraph() {
           var uri = row["uri"].value.toString().split(" ")[0];
           // get only the name of the concept (without the URL)
           var short_uri = uri.split("/")[uri.split("/").length-1];
-		  var topic = short_uri.replace("(", "");
-		  var short_uri = topic.replace(")", "");
+    		  var topic = short_uri.replace("(", "");
+    		  var short_uri = topic.replace(")", "");
           var label = short_uri.toUpperCase(); //(short_uri.substr(0,2) + "_" + short_uri.substr(short_uri.length-2)).toUpperCase();
           // loop over all nodes till you find the one with the starting category
           var index = null;
@@ -541,6 +579,7 @@ function buildGraph() {
                   var color = nodes[index].group != "none" ? group_colors(nodes[index].group) : "dimgrey";
                   // change current the color of the node to the color of the new category
                   document.getElementById("node-"+index).style.fill = color;
+                  all_nodes[index].group = nodes[index].group;
                   // set the displayed name to the shortened version
                   func_tooltip.innerHTML = "<span style=\"color:" + color + "\">&#9632</span> " + func_short_cat;
                   func_tooltip.title = func_cat;
@@ -573,7 +612,162 @@ function buildGraph() {
 
     return headerRow + bodyRows + "</div>";
 
-    
+    //////////////////////////////////////////////
+    //////////////// old table code //////////////
+    //////////////////////////////////////////////
+
+		/*var headerRow = '';
+		var bodyRows = '';
+		classes = classes || '';
+		function capitalizeFirstLetter(string) {
+			return string.charAt(0).toUpperCase() + string.slice(1);
+		}
+
+    // the header row for the checkboxed, concepts, their counts and their categories
+		headerRow += '<div class=\"table_Graph_header0\">Show</div>';
+		headerRow += '<div class=\"table_Graph_header1\">'
+				+ capitalizeFirstLetter(cols[0]) + '</div>';
+		headerRow += '<div class=\"table_Graph_header2\">'
+				+ capitalizeFirstLetter(cols[1]) + '</div>';
+    headerRow += '<div class=\"table_Graph_header3\">'
+				+ 'Category</div>';
+
+		var currentNum = 0;
+    // loop over the rows and columns of the query json data
+		json.map(function(row) {
+			cols.map(function(colName) {
+				value = '';
+        // if the current column is the URI,
+        // add a checkbox as the first column and the link of the URI concept to DBPedia site as the second column to the HTML table
+				if (colName == "uri") {
+					var value = row[colName].value.toString().split("/")[4];
+					bodyRows += '<div><div class=\"tableView_Graph_Tag_Checkbox\" ><input name=\"graph_checkbox\" type=\"checkbox\" ';
+          // if the current row number is less than the number of initial competences,
+          // set the checkbox to checked
+					if (currentNum < initialNumber){
+						bodyRows += 'id=\"'+ String(value) + '\" checked></div><div class=\"tableView_Graph_Tag_Uri\" id=\"';
+						bodyRows += String(value);
+						bodyRows += '\">\t'
+								+ "<a href=\"http://dbpedia.org/resource/" + value.split(" ")[0] + "\" target=\"_blank\">" + value + "</a></div>";
+						currentNum = currentNum + 1;
+          // else, leave the checkbox unchecked
+					} else {
+						bodyRows += '<div id=\"'+ String(value) + '\"></div><div class=\"tableView_Graph_Tag_Uri\" id=\"';
+						bodyRows += String(value);
+						bodyRows += '\">\t'
+								+ "<a href=\"http://dbpedia.org/resource/" + value.split(" ")[0] + "\" target=\"_blank\">" + value + "</a></div>";
+					}
+        // if the current column is the count,
+        // add the count of the concept to the HTML table as the second column
+				} else if(colName == "count") {
+					var value = row[colName].value.toString();
+					bodyRows += '<div class=\"tableView_Graph_Tag_Count\" >'
+							+ value + '</div></div>';
+        // else, add the respective categories of the concept to the HTML table as the third column
+				} else {
+          value = row[colName].value.toString();
+          var check_cat = value.split(" ")
+          // check if the concept has multiple categories (denoted by '[cat_list]')
+          if(check_cat.length > 1 && check_cat[1] == "[cat_list]") {
+            // get the category that is shown by default
+            var uri = check_cat[0];
+            // get only the name of the concept (without the URL)
+            var short_uri = uri.substr(28);
+            // retrieve all categories of the given concept
+            var cat_list = categories[uri];
+            // loop over all categories and add them to a dropdown menu in the HTML table
+            for(var i = 0; i < cat_list.length; i++) {
+              var category = cat_list[i];
+              // show the first category by default
+              if(i == 0) {
+                // shorten category name to the first 20 letters (plus '...')
+                // to avoid that the category name stretches outside the table
+                var short_cat = category;
+                if(category.length >= 10) {
+                  short_cat = category.substr(0,10) + "...";
+                }
+
+                // set the tooltip of the selected category to display the full name when hovering over the shortened name
+                tooltip_value = "<div id=\"" + short_uri + "\" class=\"tableView_Graph_Tag_Category\" data-toggle=\"tooltip\" data-placement=\"left\" title=\"" + category.toUpperCase() + "\">"
+      							+ short_cat.toUpperCase() + "</div>";
+                // add the first category as the default option (displayed) in the dropdown menu
+                bodyRows += "<div><button name=\"category\" class=\"btn btn-secondary dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">"
+                    + tooltip_value + "</button><div class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuButton\">";
+              }
+
+              // add the current category as an option in the dropdown menu
+              bodyRows += "<button id=\"" + short_uri + "___" + category + "\" class=\"dropdown-item\">" + category.toUpperCase() + "</button>";
+              // function to change the displayed category to the clicked one and change the color of the respective concept
+              $("#div_table_view").on("click", "#" + short_uri + "___" + category, function(event) {
+                // get the concept and its category
+                var func_uri = event.target.id.split("___")[0];
+                var func_cat = event.target.id.split("___")[1].toUpperCase();
+                // access the tooltip element
+                var func_tooltip = document.getElementById(func_uri);
+                // shorten the shown category name as before
+                var func_short_cat = func_cat;
+                if(func_cat.length >= 10) {
+                  func_short_cat = func_cat.substr(0,10) + "...";
+                }
+
+                // function to show the full name of the shortened category when hovering over it
+                $("#" + func_uri).tooltip().attr("data-original-title", func_cat);
+                // set the displayed name to the shortened version
+                func_tooltip.innerHTML = func_short_cat;
+                var label = (func_uri.substr(0,2) + "_" + func_uri.substr(func_uri.length-2)).toUpperCase();
+                var index = null;
+                // loop over all pnodes till you find the one which category was changed
+                for(var i = 0; i < nodes.length; i++) {
+                  if(label == nodes[i].id) {
+                    // save the index of the node
+                    index = i;
+                    // change the previous selected category of the node to the new one
+                    nodes[i].group = func_cat.toLowerCase();
+                    break;
+                  }
+                }
+
+                // change current the color of the node to the color of the new category
+                document.getElementById("node-"+index).style.fill = getGroupColor(index);
+              });
+            }
+
+            bodyRows += "</div></div>";
+          // else, the concept has only one category (including 'None')
+          } else {
+            // shorten category name to the first 20 letters (plus '...')
+            // to avoid that the category name stretches outside the table
+            // furthermore, if the name doesn't have to be shortened (less than 10 letter),
+            // the tooltip also doesn't have to be set
+            // (hovering over the category won't display the full name since the full name is already displayed)
+            var short_value = value;
+            var tooltip_value = value;
+            if(value.length >= 10) {
+              short_value = value.substr(0,10) + "...";
+              // set the tooltip of the selected category to display the full name when hovering over the shortened name
+              tooltip_value = "<div class=\"tableView_Graph_Tag_Category\" data-toggle=\"tooltip\" data-placement=\"left\" title=\"" + value.toUpperCase() + "\">"
+                  + short_value.toUpperCase() + "</div>";
+            }
+
+            // add the first category as the default option (displayed) in the dropdown menu
+            bodyRows += "<div><div id=\"single_category\" name=\"category\" class=\"btn btn-secondary\">"
+                + tooltip_value + "</div></div>";
+          }
+        }
+			});
+		});
+
+    // function to set/activate the tooltip (hovering over the category will display the full name)
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    });
+
+		//return '<div style=\" float: both; font-weight: bold; padding-top: 5px;\">'
+				//+ headerRow + '</div>' + bodyRows;
+
+    // return the entire table with the header row and the remaining body rows as a HTML element
+		return '<div>'
+				+ headerRow + '</div>' + bodyRows;*/
 	}
 
   document.getElementById("loading").remove();
@@ -605,7 +799,6 @@ function get_my_new_sparql_data(my_sel, my_researcher, my_uri, my_limit,
 	/* To run barchart from your local machine, use the below code: */
 	var url = node + '/', my_data;
 	//my_sel=getSimilarity
-
 	my_query_data_set = {
 		'researcher' : namespace + my_researcher,
 		'limit' : my_limit,
@@ -718,6 +911,7 @@ function reloadGraph() {
 	var selectedData = document.getElementsByName("graph_checkbox");
   // json arrays for the nodes
   nodes = [];
+  all_nodes = [];
   // loop over the checkboxes of the table
 	for (var i = 0; i < selectedData.length; i++) {
     // if the a box was checked, get the node and add it to the nodes array for visualization
@@ -730,8 +924,9 @@ function reloadGraph() {
       // for each entity take the first two and last two letters as the label
       label = myUri; //(myUri.substr(0,2) + "_" + myUri.substr(myUri.length-2)).toUpperCase();
       // add the label to the nodes
-      var node = {"id": label, "group": category.toLowerCase()};
-      nodes.push(node);
+      var graph_node = {"id": label, "group": category.toLowerCase()};
+      nodes.push(graph_node);
+      all_nodes.push(graph_node);
 		}
 	}
 
@@ -930,7 +1125,11 @@ function reloadGraph() {
                              .attr("fill", function(d) {
                                return d.group != "none" ? group_colors(d.group) : "dimgrey";
                              })
-                             .attr("r", 6);
+                             .attr("r", 6)
+                             .call(d3.drag()
+                                .on("start", dragStarted)
+                                .on("drag", dragged)
+                                .on("end", dragEnded));
 
   // add the labels of the selected entities to the canvas
   var textElements = svg.append("g")
@@ -945,7 +1144,11 @@ function reloadGraph() {
                              //.style("stroke", "black")
                              //.style("stroke-width", "5px")
                              .attr("dx", -35)
-                             .attr("dy", -13);
+                             .attr("dy", -13)
+                             .call(d3.drag()
+                                .on("start", dragStarted)
+                                .on("drag", dragged)
+                                .on("end", dragEnded));
 
   // add a hover window to display the values of the links
   var toolTip = d3.select("body")
@@ -964,8 +1167,8 @@ function reloadGraph() {
       .attr("cx", function(d) {return d.x = Math.max(radius, Math.min(width - radius, d.x));})
       .attr("cy", function(d) {return d.y = Math.max(radius, Math.min(height - radius, d.y));});
     textElements
-      .attr("x", node => node.x)
-      .attr("y", node => node.y);
+      .attr("x", graph_node => graph_node.x)
+      .attr("y", graph_node => graph_node.y);
   });
 
   // set the links
@@ -982,44 +1185,44 @@ function reloadGraph() {
 
   // function to set the color of the node depending on its category
   // if no category is avaiable, set it to grey
-  function getGroupColor(node) {
-    return all_nodes[node].group != "none" ? group_colors(all_nodes[node].group) : "dimgrey";
+  function getGroupColor(graph_node) {
+    return all_nodes[graph_node].group != "none" ? group_colors(all_nodes[graph_node].group) : "dimgrey";
   }
 
   // function to return all nodes that are connected with the selected node
-  function getNeighbors(node) {
+  function getNeighbors(graph_node) {
     return links.reduce((neighbors, link) => {
-      if(link.target.id == node.id) {
+      if(link.target.id == graph_node.id) {
         neighbors.push(link.source.id);
-      } else if(link.source.id == node.id) {
+      } else if(link.source.id == graph_node.id) {
         neighbors.push(link.target.id);
       }
       return neighbors;
-    }, [node.id]);
+    }, [graph_node.id]);
   }
 
   // function to check if two nodes are connected
-  function isNeighborLink(node, link) {
-    return link.target.id == node.id || link.source.id == node.id;
+  function isNeighborLink(graph_node, link) {
+    return link.target.id == graph_node.id || link.source.id == graph_node.id;
   }
 
   // function to the change the color of the nodes
   // if no connection between the node and the selected node exists, change the color of the node to white
-  function getNodeColor(node, neighbors, selectedNode) {
-    return neighbors.indexOf(node.id) > -1 ? getGroupColor(node.index) : "white";
+  function getNodeColor(graph_node, neighbors, selectedNode) {
+    return neighbors.indexOf(graph_node.id) > -1 ? getGroupColor(graph_node.index) : "white";
   }
 
   // function to the change the color of the labels
   // if no connection exists, change the color to burlyWood
-  function getTextColor(node, neighbors) {
-    return neighbors.indexOf(node.id) > -1 ? "black" : "burlyWood";
+  function getTextColor(graph_node, neighbors) {
+    return neighbors.indexOf(graph_node.id) > -1 ? "black" : "burlyWood";
   }
 
   // function to set the width of the links
   // if the node is connected to the selected node, change the size of the width to 3
   // else if no connection exists, change the width to the link to 0
-  function getLinkStroke(node, link) {
-    return isNeighborLink(node, link) ? 3 : 0;
+  function getLinkStroke(graph_node, link) {
+    return isNeighborLink(graph_node, link) ? 3 : 0;
   }
 
   // function to change the color of the nodes and labels and the width of the links
@@ -1031,18 +1234,18 @@ function reloadGraph() {
     if(previous_selected_node == selectedNode) {
       previous_selected_node = null;
       nodeElements
-        .attr("fill", node => getGroupColor(node.index));
+        .attr("fill", graph_node => getGroupColor(graph_node.index));
       textElements
-        .attr("fill", node => "black");
+        .attr("fill", graph_node => "black");
       linkElements
         .attr("stroke-width", link => 3);
     } else {
       previous_selected_node = selectedNode;
       var neighbors = getNeighbors(selectedNode);
       nodeElements
-        .attr("fill", node => getNodeColor(node, neighbors, selectedNode));
+        .attr("fill", graph_node => getNodeColor(graph_node, neighbors, selectedNode));
       textElements
-        .attr("fill", node => getTextColor(node, neighbors));
+        .attr("fill", graph_node => getTextColor(graph_node, neighbors));
       linkElements
         .attr("stroke-width", link => getLinkStroke(selectedNode, link));
     }
@@ -1062,6 +1265,29 @@ function reloadGraph() {
     var val_rounded = Math.round((value + Number.EPSILON) * 1000) / 1000;
     toolTip.html("Similarity: " + sim_rounded + "<br>Relatedness: " + rel_rounded + "<br>Value: " + val_rounded);
     toolTip.style("visibility", "visible");
+  }
+
+  function dragStarted(d) {
+    if (!d3.event.active) {
+      simulation.alphaTarget(1).restart();
+    }
+
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+
+  function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+  }
+
+  function dragEnded(d) {
+    if(!d3.event.active) {
+      simulation.alphaTarget(0);
+    }
+
+    d.fx = null;
+    d.fy = null;
   }
 };
 

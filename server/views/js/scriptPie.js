@@ -1,25 +1,86 @@
 // get the researcher specified in the URL
-var researcher = new URLSearchParams(window.location.search).get("researcher_id");
+var researcher = null;
 // get the researcher's name specified in the URL
-var researcherName = new URLSearchParams(window.location.search).get("researcher_name");
+var researcherName = null;
 // get the fuseki adress specified in the URL
-var fuseki = new URLSearchParams(window.location.search).get("fuseki");
+var fuseki = null;
 // get the node adress specified in the URL
-var node = new URLSearchParams(window.location.search).get("node");
+var node = null;
+// get the labels
+var labels_data = null;
+// get the competences
+var competences_data = null;
+// get the publications
+var publications_data = null;
 // Define the global variables
 var mouse_pos_X = 0, mouse_pos_Y = 0, my_query_data = '', my_query_data_test, my_active_id, line_height_shift = 10, namespace = 'http://semanticsoftware.info/lodexporter/creator/', response = '', transition_Delay = 1000;
 // variable setting the colors for the categories
 var group_colors = d3.scale.category20();
 var arc_map = {};
+
 // ################################################################################################
 /**
  * Main Function Description: This function is called from the page load on the
  * index.html file. It draw the pie chart and table.
  */
-function buildPie() {
+function buildPie(current_researcher_id, current_researcher_name, current_fuseki, current_node) {
+  // get the researcher specified in the URL
+  researcher = current_researcher_id;
+  // get the researcher's name specified in the URL
+  researcherName = current_researcher_name;
+  // get the fuseki adress specified in the URL
+  fuseki = current_fuseki;
+  // get the node adress specified in the URL
+  node = current_node;
+
+  var competenceNumber = 25;
 	// TODO: here should be the user call back information
-	my_query_data = get_my_new_sparql_data('getUriCount', researcher, '', '25', '');
+	my_query_data = get_my_new_sparql_data('getUriCount', researcher, '', competenceNumber.toString(), '');
 	my_user = researcher;
+  var labels_found = true;
+  var competences_found = true;
+  var publications_found = true;
+  $.ajax({
+    url: node + "/researchers/" + researcher + "/labels.json",
+    async: false,
+    dataType: "json",
+    success: function(data) {
+      labels_data = data;
+    },
+    error: function(data) {
+      getAllData()
+      labels_found = false;
+   }
+  });
+  if(labels_found) {
+    $.ajax({
+      url: node + "/researchers/" + researcher + "/competences.json",
+      async: false,
+      dataType: "json",
+      success: function(data) {
+        competences_data = data;
+      },
+      error: function(data) {
+        getAllData()
+        competences_found = false;
+     }
+    });
+
+    if(competences_found) {
+      $.ajax({
+        url: node + "/researchers/" + researcher + "/publications.json",
+        async: false,
+        dataType: "json",
+        success: function(data) {
+          publications_data = data;
+        },
+        error: function(data) {
+          getAllData()
+          publications_found = false;
+       }
+      });
+    }
+  }
 
 	var width = 600, height = 400, my_query_data_pie = my_query_data.results.bindings, circle_ids = d3
 			.range(my_query_data_pie.length);
@@ -76,7 +137,33 @@ function buildPie() {
   document.getElementById("btn_Table").style.background = "#0b60a1";
   document.getElementById("btn_Table").style.color = "#fff";
   document.getElementById("div_table").style.display = "none";
-  document.getElementById("hint").innerHTML = "Competences of Researcher " + researcherName + " and their frequencies how often they appear over the latest 10 publications listed in <a href=\"https://dblp.uni-trier.de/\">dblp</a>. All competences are linked to <a href=\"https://wiki.dbpedia.org/\">DBpedia</a> URIs obtained from <a href=\"https://www.dbpedia-spotlight.org/\" target=\"_blank\">DBpedia Spotlight</a>. Click on a pie slice and inspect the provenance. The category is obtained from the <a href=\"https://cso.kmi.open.ac.uk\" target=\"blank\">CSO Ontology</a>.";
+  document.getElementById("hint").innerHTML = "Competences of Researcher " + researcherName + " and their frequencies how often they appear over the <a id=\"pubMenu\" href=\"#\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">latest " + Object.keys(publications_data).length + " publications</a> listed in <a href=\"https://dblp.uni-trier.de/\">dblp</a>. All competences are linked to <a href=\"https://wiki.dbpedia.org/\">DBpedia</a> URIs obtained from <a href=\"https://www.dbpedia-spotlight.org/\" target=\"_blank\">DBpedia Spotlight</a>. Click on a pie slice and inspect the provenance. The category is obtained from the <a href=\"https://cso.kmi.open.ac.uk\" target=\"blank\">CSO Ontology</a>.";
+  var dropdown = document.createElement("div");
+  dropdown.id = "pubDropMenu";
+  dropdown.className = "dropdown-menu";
+  var titles = Object.keys(publications_data);
+  titles.sort();
+  for(var i=0; i<titles.length; i++) {
+    if(i > 0) {
+      dropdown.innerHTML += "<div class=\"dropdown-divider\"></div>";
+    }
+
+    dropdown.innerHTML += "<a id=\"pubItem\" class=\"dropdown-item\" href=\"#\">" + titles[i] + "</a>";
+  }
+
+  $("#hint").on("click", "#pubItem", function(event) {
+    var title = event.target.innerHTML;
+    if(title != "latest " + Object.keys(publications_data).length + " publications") {
+      var doi = publications_data[title];
+      if(doi == "No DOI avaiable") {
+        window.open("https://dblp.uni-trier.de/search?q=" + title);
+      } else {
+        window.open("https://www.doi.org/" + doi);
+      }
+    }
+  });
+
+  document.getElementById("hint").appendChild(dropdown);
   document.getElementById("div_table_view").style.display = "block";
 
   var outerRadius = height / 1.5 - height / 4, innerRadius = height / 3
@@ -119,13 +206,15 @@ function buildPie() {
           // show first competence by default
           my_active_id = "slice-0";
           my_active_id_track = my_active_id.substr(6);
-          var my_query_help = my_query_data.results.bindings[my_active_id_track].uri.value
+          /*var my_query_help = my_query_data.results.bindings[my_active_id_track].uri.value
               .toString(), my_label_data, my_table_data = [];
 
           my_label_data = get_my_new_sparql_data('getCompRecSentence', researcher,
-              my_query_help, '', '');
+              my_query_help, '', '');*/
 
-          // loop over all competences and add them to the table of the current concept
+          var my_label_data = competences_data[my_active_id_track][0];
+          var my_table_data = competences_data[my_active_id_track][1];
+          /*// loop over all competences and add them to the table of the current concept
           for (var my_count = 0; my_count < my_label_data.results.bindings.length; my_count++) {
             // check if the current competence has a DOI
             // if not, set the DOI to "not avaiable"
@@ -146,15 +235,17 @@ function buildPie() {
           'MyTopicStart' : my_label_data.results.bindings[my_count].my_topic_start.value,
           'MyTopicEnd' : my_label_data.results.bindings[my_count].my_topic_end.value
             };
-          }
+          }*/
 
           // tabulate the information as a HTML table
           document.getElementById("div_table").innerHTML = tabulate(my_table_data, ['Nbr', 'Record', 'Publication', 'DOI']);
           // mark the concept in each sentence
           table_mark_topic(my_label_data);
         	// HERE ENDS TABLE CREATION for DIFFERENT VIEW
-          my_label_data = get_my_new_sparql_data('getLabelComment', researcher,
-              my_query_help, '', '');
+          /*my_label_data = get_my_new_sparql_data('getLabelComment', researcher,
+              my_query_help, '', '');*/
+          my_label_data = labels_data[my_active_id_track];
+          var my_query_help = my_query_data.results.bindings[my_active_id_track].uri.value.toString();
           comment = my_label_data.results.bindings[0].comment.value;
           document.getElementById("label_comment").innerHTML = comment;
           document.getElementById("label_ref").innerHTML = "For more information see: "
@@ -183,8 +274,9 @@ function buildPie() {
         my_active_id_track = this.id.substr(6);
         var my_query_help = my_query_data.results.bindings[my_active_id_track].uri.value
             .toString(), my_label_data, my_table_data = [];
-        my_label_data = get_my_new_sparql_data('getLabelComment', researcher,
-            my_query_help, '', '');
+        /*my_label_data = get_my_new_sparql_data('getLabelComment', researcher,
+            my_query_help, '', '');*/
+        my_label_data = labels_data[my_active_id_track];
         label = null;
         try {
           label = my_label_data.results.bindings[0].label.value;
@@ -198,7 +290,7 @@ function buildPie() {
         arcTween(outerRadius, 0).call(this)
       })
       // the label follows the mouse when moving
-      .on("mousemove", function(){return entityWindow.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
+      .on("mousemove", function(){return entityWindow.style("top", (d3.event.pageY+15)+"px").style("left",(d3.event.pageX+10)+"px");})
       // the label window is hidden when moving outside a pie piece
 			.on("mouseout", function() {
         entityWindow.style("visibility", "hidden");
@@ -218,13 +310,16 @@ function buildPie() {
             document.getElementById(my_active_id).style.stroke = "green";
             document.getElementById(my_active_id).style.strokeWidth = 5;
             my_active_id_track = my_active_id.substr(6);
-            var my_query_help = my_query_data.results.bindings[my_active_id_track].uri.value
+            /*var my_query_help = my_query_data.results.bindings[my_active_id_track].uri.value
           			.toString(), my_label_data, my_table_data = [];
 
             my_label_data = get_my_new_sparql_data('getCompRecSentence', researcher,
-        				my_query_help, '', '');
+        				my_query_help, '', '');*/
 
-            // loop over all competences and add them to the table of the current concept
+            var my_label_data = competences_data[my_active_id_track][0];
+            var my_table_data = competences_data[my_active_id_track][1];
+
+            /*// loop over all competences and add them to the table of the current concept
         		for (var my_count = 0; my_count < my_label_data.results.bindings.length; my_count++) {
               // check if the current competence has a DOI
               // if not, set the DOI to "not avaiable"
@@ -245,7 +340,7 @@ function buildPie() {
 						'MyTopicStart' : my_label_data.results.bindings[my_count].my_topic_start.value,
 						'MyTopicEnd' : my_label_data.results.bindings[my_count].my_topic_end.value
         			};
-        		}
+        		}*/
 
             // tabulate the information as a HTML table
         		document.getElementById("div_table").innerHTML = tabulate(my_table_data, ['Nbr', 'Record', 'Publication', 'DOI']);
@@ -255,8 +350,22 @@ function buildPie() {
 				    document.getElementById("btn_Sources").style.color = "#fff";
         		document.getElementById("btn_Table").style.background = "white";
 				    document.getElementById("btn_Table").style.color = "#000";
-        		document.getElementById("hint").innerHTML = "Based on " +researcherName+"'s 10 latest publications listed in <a href=\"https://dblp.uni-trier.de/\" target=\"_blank\">dblp</a>, we identified entities and phrases that characterize the scholar's competences. Click on a pie slice to inspect further competences.";
-		        document.getElementById("hint").style.display = "block";
+        		document.getElementById("hint").innerHTML = "Based on " +researcherName+"'s <a id=\"pubMenu\" href=\"#\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">" + Object.keys(publications_data).length + " latest publications</a> listed in <a href=\"https://dblp.uni-trier.de/\" target=\"_blank\">dblp</a>, we identified entities and phrases that characterize the scholar's competences. Click on a pie slice to inspect further competences.";
+            var dropdown = document.createElement("div");
+            dropdown.id = "pubDropMenu";
+            dropdown.className = "dropdown-menu";
+            var titles = Object.keys(publications_data);
+            titles.sort();
+            for(var i=0; i<titles.length; i++) {
+              if(i > 0) {
+                dropdown.innerHTML += "<div class=\"dropdown-divider\"></div>";
+              }
+
+              dropdown.innerHTML += "<a id=\"pubItem\" class=\"dropdown-item\" href=\"#\">" + titles[i] + "</a>";
+            }
+
+            document.getElementById("hint").appendChild(dropdown);
+            document.getElementById("hint").style.display = "block";
         		document.getElementById("div_table").style.display = "block";
             document.getElementById("div_table_view").style.display = "none";
             document.getElementById("btn_Sources").disabled = false;
@@ -282,8 +391,10 @@ function buildPie() {
 						// it removes the previous information
 						d3.selectAll(".toolCircle").remove();
 						toolTip(d);
-            my_label_data = get_my_new_sparql_data('getLabelComment', researcher,
-        				my_query_help, '', '');
+            /*my_label_data = get_my_new_sparql_data('getLabelComment', researcher,
+        				my_query_help, '', '');*/
+            my_label_data = labels_data[my_active_id_track];
+            var my_query_help = my_query_data.results.bindings[my_active_id_track].uri.value.toString();
             try {
               comment = my_label_data.results.bindings[0].comment.value;
               document.getElementById("label_comment").innerHTML = comment;
@@ -343,10 +454,10 @@ function buildPie() {
 				.toString().substr(28), value = d.value.toString();
 		var tip = '';
 		var uri_title = uri;
-		
+
 		if(uri_title.includes('_')) {
 		  var res = uri.split('_');
-		  
+
 		  if(res.length > 2){
 			var dyStart = -2.2;
 		  }
@@ -356,19 +467,19 @@ function buildPie() {
 		  else{
 			  dyStart = 0.2;
 		  }
-		  
+
 		  tip += '<tspan style="width: 10px;" x="0" dy="'+dyStart+'em">' + res[0] + '</tspan>';
-		  
+
 		  var dy = 1.2;
-		  for(var k=1; k < res.length; k++){    
+		  for(var k=1; k < res.length; k++){
 		   tip += '<tspan style="width: 10px;" x="0" dy="'+dy+'em">' + res[k] + '</tspan>';
 		 }
-		  
+
 		}else{
 			tip += '<tspan style="width: 10px;" x="0" dy="0.2em">' + uri_title+ '</tspan>';
 		}
 		tip += '<tspan x="0" dy="2.2em">Value: ' + value + '</tspan>';
-	
+
 		svg.append('text').attr('class', 'toolCircle').attr('dy', -15)
 				.html(tip).style('font-size', '.8em').style('text-anchor',
 						'middle');
@@ -376,7 +487,6 @@ function buildPie() {
 				innerRadius * 0.85) // radius of tooltip circle
 		.style('fill', 'lightblue').style('stroke', 'lightblue').style(
 				'fill-opacity', 0.35);
-
 	}
 
   // function to set the color of the pie piece depending on its category
@@ -553,7 +663,143 @@ function buildPie() {
 
     return headerRow + bodyRows + "</div>";
 
- 
+    //////////////////////////////////////////////
+    //////////////// old table code //////////////
+    //////////////////////////////////////////////
+
+    /*var headerRow = '';
+		var bodyRows = '';
+		function capitalizeFirstLetter(string) {
+			return string.charAt(0).toUpperCase() + string.slice(1);
+		}
+
+    // the header row for the concepts, their counts and their categories
+    headerRow += '<div class=\"table_header1\">'
+				+ capitalizeFirstLetter(cols[0]) + '</div>';
+		headerRow += '<div class=\"table_header2\">'
+				+ capitalizeFirstLetter(cols[1]) + '</div>';
+    headerRow += '<div class=\"table_header3\">'
+				+ capitalizeFirstLetter(cols[2]) + '</div>';
+
+    // loop over the rows and columns of the query json data
+		json.map(function(row) {
+			cols.map(function(colName) {
+				value = '';
+        // if the current column is the URI,
+        // add the link of the URI concept to DBPedia site to the HTML table as the first column
+				if (colName == "uri") {
+					value = row[colName].value.toString().split("/")[4];
+					bodyRows += '<div ><div class=\"tableView_Tag_Uri\" id=\"';
+					bodyRows += String(value);
+					bodyRows += '\" onclick=\"ucTableClick(this);\" >\t'
+							+ "<a href=\"http://dbpedia.org/resource/" + value + "\" target=\"_blank\">" + value + "</a></div>";
+        // if the current column is the count,
+        // add the count of the concept to the HTML table as the second column
+				} else if(colName == "count") {
+					value = row[colName].value.toString();
+					bodyRows += '<div class=\"tableView_Tag_Count\" >\t'
+							+ value + '</div></div>';
+        // else, add the respective categories of the concept to the HTML table as the third column
+				} else {
+          value = row[colName].value.toString();
+          var check_cat = value.split(" ")
+          // check if the concept has multiple categories (denoted by '[cat_list]')
+          if(check_cat.length > 1 && check_cat[1] == "[cat_list]") {
+            // get the category that is shown by default
+            var uri = check_cat[0];
+            // get only the name of the concept (without the URL)
+            var short_uri = uri.split("/")[uri.split("/").length-1];
+            // retrieve all categories of the given concept
+            var cat_list = categories[uri];
+            // loop over all categories and add them to a dropdown menu in the HTML table
+            for(var i = 0; i < cat_list.length; i++) {
+              var category = cat_list[i];
+              // show the first category by default
+              if(i == 0) {
+                // shorten category name to the first 20 letters (plus '...')
+                // to avoid that the category name stretches outside the table
+                var short_cat = category;
+                if(category.length >= 10) {
+                  short_cat = category.substr(0,10) + "...";
+                }
+
+                // set the tooltip of the selected category to display the full name when hovering over the shortened name
+                tooltip_value = "<div id=\"" + short_uri + "_tool" + "\" class=\"tableView_Tag_Category\" data-toggle=\"tooltip\" data-placement=\"left\" title=\"" + category.toUpperCase() + "\">"
+      							+ short_cat.toUpperCase() + "</div>";
+                // add the first category as the default option (displayed) in the dropdown menu
+                bodyRows += "<div><button name=\"category\" class=\"btn btn-secondary dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">"
+                    + tooltip_value + "</button><div class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuButton\">";
+              }
+
+              // add the current category as an option in the dropdown menu
+              bodyRows += "<button id=\"" + short_uri + "___" + category + "\" class=\"dropdown-item\">" + category.toUpperCase() + "</button>";
+              // function to change the displayed category to the clicked one and change the color of the respective concept
+              $("#div_table_view").on("click", "#" + short_uri + "___" + category, function(event) {
+                // get the concept and its category
+                var func_uri = event.target.id.split("___")[0];
+                var func_cat = event.target.id.split("___")[1].toUpperCase();
+                // access the tooltip element
+                var func_tooltip = document.getElementById(func_uri + "_tool");
+                // shorten the shown category name as before
+                var func_short_cat = func_cat;
+                if(func_cat.length >= 10) {
+                  func_short_cat = func_cat.substr(0,10) + "...";
+                }
+
+                // function to show the full name of the shortened category when hovering over it
+                $("#" + func_uri + "_tool").tooltip().attr("data-original-title", func_cat);
+                // set the displayed name to the shortened version
+                func_tooltip.innerHTML = func_short_cat;
+                var index = null;
+                // loop over all pie pieces till you find the one which category was changed
+                for(var i = 0; i < arcs.length; i++) {
+                  if(func_uri == arcs[i].id) {
+                    // save the index of the piece
+                    index = i;
+                    // change the previous selected category of the piece to the new one
+                    arcs[i].group = func_cat.toLowerCase();
+                    break;
+                  }
+                }
+
+                // change current the color of the piece to the color of the new category
+                document.getElementById("slice-"+index).style.fill = getGroupColor(index);
+              });
+            }
+
+            bodyRows += "</div></div>";
+          // else, the concept has only one category (including 'None')
+          } else {
+            // shorten category name to the first 20 letters (plus '...')
+            // to avoid that the category name stretches outside the table
+            // furthermore, if the name doesn't have to be shortened (less than 10 letter),
+            // the tooltip also doesn't have to be set
+            // (hovering over the category won't display the full name since the full name is already displayed)
+            var short_value = value;
+            var tooltip_value = value;
+            if(value.length >= 10) {
+              short_value = value.substr(0,10) + "...";
+              // set the tooltip of the selected category to display the full name when hovering over the shortened name
+              tooltip_value = "<div class=\"tableView_Graph_Tag_Category\" data-toggle=\"tooltip\" data-placement=\"left\" title=\"" + value.toUpperCase() + "\">"
+                  + short_value.toUpperCase() + "</div>";
+            }
+
+            // add the first category as the default option (displayed) in the dropdown menu
+            bodyRows += "<div><div id=\"single_category\" name=\"category\" class=\"btn btn-secondary\">"
+                + tooltip_value + "</div></div>";
+          }
+        }
+			});
+		});
+
+    // function to set/activate the tooltip (hovering over the category will display the full name)
+    $(function() {
+      $('[data-toggle="tooltip"]').tooltip();
+    });
+
+    // return the entire table with the header row and the remaining body rows as a HTML element
+		return '<div style=\" float: both; font-weight: bold; padding-top: 5px;\">'
+				+ headerRow + '</div>' + bodyRows;*/
 	}
 	// ################################################################################################
 	/**
@@ -572,13 +818,16 @@ function buildPie() {
     document.getElementById(my_active_id).style.stroke = "green";
     document.getElementById(my_active_id).style.strokeWidth = 5;
     my_active_id_track = my_active_id.substr(6);
-    var my_query_help = my_query_data.results.bindings[my_active_id_track].uri.value
+    /*var my_query_help = my_query_data.results.bindings[my_active_id_track].uri.value
         .toString(), my_label_data, my_table_data = [];
 
     my_label_data = get_my_new_sparql_data('getCompRecSentence', researcher,
-        my_query_help, '', '');
+        my_query_help, '', '');*/
 
-    // loop over all competences and add them to the table of the current concept
+    var my_label_data = competences_data[my_active_id_track][0];
+    var my_table_data = competences_data[my_active_id_track][1];
+
+    /*// loop over all competences and add them to the table of the current concept
     for (var my_count = 0; my_count < my_label_data.results.bindings.length; my_count++) {
       // check if the current competence has a DOI
       // if not, set the DOI to "not avaiable"
@@ -599,7 +848,7 @@ function buildPie() {
     'MyTopicStart' : my_label_data.results.bindings[my_count].my_topic_start.value,
     'MyTopicEnd' : my_label_data.results.bindings[my_count].my_topic_end.value
       };
-    }
+    }*/
 
     // tabulate the information as a HTML table
     document.getElementById("div_table").innerHTML = tabulate(my_table_data, ['Nbr', 'Record', 'Publication', 'DOI']);
@@ -609,7 +858,29 @@ function buildPie() {
     document.getElementById("btn_Sources").style.color = "#fff";
     document.getElementById("btn_Table").style.background = "white";
     document.getElementById("btn_Table").style.color = "#000";
-    document.getElementById("hint").innerHTML = "Based on "+researcherName+"'s 10 latest publications listed in <a href=\"https://dblp.uni-trier.de/\" target=\"_blank\">dblp</a>, we identified entities and phrases that characterize the scholar's competences. Click on a pie slice to inspect further competences.";
+    document.getElementById("hint").innerHTML = "Based on " +researcherName+"'s <a id=\"pubMenu\" href=\"#\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">" + Object.keys(publications_data).length + " latest publications</a> listed in <a href=\"https://dblp.uni-trier.de/\" target=\"_blank\">dblp</a>, we identified entities and phrases that characterize the scholar's competences. Click on a pie slice to inspect further competences.";
+    var dropdown = document.createElement("div");
+    dropdown.id = "pubDropMenu";
+    dropdown.className = "dropdown-menu";
+    var titles = Object.keys(publications_data);
+    titles.sort();
+    for(var i=0; i<titles.length; i++) {
+      if(i > 0) {
+        dropdown.innerHTML += "<div class=\"dropdown-divider\"></div>";
+      }
+
+      dropdown.innerHTML += "<a id=\"pubItem\" class=\"dropdown-item\" href=\"#\">" + titles[i] + "</a>";
+    }
+
+    var my_query_help = my_query_data.results.bindings[my_active_id_track].uri.value.toString();
+    document.getElementById("label_ref").innerHTML = "For more information see: "
+        + "<a class=\"label_query\" href='"
+        + my_query_help
+        + "'"
+        + " target='_blank'>"
+        + my_query_help + "</a>";
+
+    document.getElementById("hint").appendChild(dropdown);
     document.getElementById("hint").style.display = "block";
     document.getElementById("div_table").style.display = "block";
     document.getElementById("div_table_view").style.display = "none";
@@ -636,8 +907,9 @@ function buildPie() {
     // it removes the previous information
     d3.selectAll(".toolCircle").remove();
     toolTip(d);
-    my_label_data = get_my_new_sparql_data('getLabelComment', researcher,
-        my_query_help, '', '');
+    /*my_label_data = get_my_new_sparql_data('getLabelComment', researcher,
+        my_query_help, '', '');*/
+    my_label_data = labels_data[my_active_id_track];
     label = my_query_help.substr(28);
     try {
       comment = my_label_data.results.bindings[0].comment.value;
@@ -721,12 +993,78 @@ function buildPie() {
   document.getElementById("widget-container").style.display = "block";
 	// ################################################################################################
   //document.getElementById("page").style.display = "block";
+
+  function getAllData() {
+    competences = {};
+    labels = {};
+    publications = {};
+    for(var i=0; i<competenceNumber; i++) {
+      var my_query_help = my_query_data.results.bindings[i].uri.value
+          .toString(), my_label_data, my_table_data = [];
+      my_label_data = get_my_new_sparql_data('getCompRecSentence', researcher,
+          my_query_help, '', '');
+      // loop over all competences and add them to the table of the current concept
+      for (var my_count = 0; my_count < my_label_data.results.bindings.length; my_count++) {
+        // check if the current competence has a DOI
+        // if not, set the DOI to "not avaiable"
+        var doi = "No DOI avaiable";
+        if("doi" in my_label_data.results.bindings[my_count]) {
+            doi = my_label_data.results.bindings[my_count].doi.value;
+        }
+
+        // set the current information (count starts at 1) for the table
+        my_table_data[my_count] = {
+          'Nbr' : my_count,
+          //'Record' : my_label_data.results.bindings[my_count].competenceRecord.value,
+      'Record' : my_label_data.results.bindings[my_count].content.value,
+          'Publication': my_label_data.results.bindings[my_count].articleTitle.value,
+          'DOI': doi,
+    'MySentStart' : my_label_data.results.bindings[my_count].my_sent_start.value,
+      'MySentEnd' : my_label_data.results.bindings[my_count].my_sent_end.value,
+      'MyTopicStart' : my_label_data.results.bindings[my_count].my_topic_start.value,
+      'MyTopicEnd' : my_label_data.results.bindings[my_count].my_topic_end.value
+        };
+
+        var publication = my_label_data.results.bindings[my_count].articleTitle.value;
+        if(!(publication in publications)) {
+          publications[publication] = doi;
+        }
+      }
+
+      competences[i] = [my_label_data,my_table_data];
+      labels[i] = get_my_new_sparql_data('getLabelComment', researcher,
+          my_query_help, '', '');
+    }
+
+    console.log(researcher)
+    download("labels.json", JSON.stringify(labels));
+    download("competences.json", JSON.stringify(competences));
+    download("publications.json", JSON.stringify(publications));
+    labels_data = labels;
+    competences_data = competences;
+    publications_data = publications;
+  }
 };
 // #### END OF MAIN FUNCTION ########################
 
 // ################################################################################################
 // ##################### Extra Functions #################
 // ################################################################################################
+
+function download(filename, text) {
+    var pom = document.createElement('a');
+    pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    pom.setAttribute('download', filename);
+
+    if (document.createEvent) {
+        var event = document.createEvent('MouseEvents');
+        event.initEvent('click', true, true);
+        pom.dispatchEvent(event);
+    }
+    else {
+        pom.click();
+    }
+}
 
 // add the extracted categories to the query data
 function addCategories(data, categories) {
@@ -1027,7 +1365,21 @@ function display_comment(clicked_id) {
 		document.getElementById("btn_Sources").style.color = "#fff";
 		document.getElementById("btn_Table").style.background = "white";
 		document.getElementById("btn_Table").style.color = "#000";
-		document.getElementById("hint").innerHTML = "Based on "+researcherName+"'s 10 latest publications listed in <a href=\"https://dblp.uni-trier.de/\" target=\"_blank\">dblp</a>, we identified entities and phrases that characterize the scholar's competences. Click on a pie slice to inspect further competence entries.";
+    document.getElementById("hint").innerHTML = "Based on " +researcherName+"'s <a id=\"pubMenu\" href=\"#\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">" + Object.keys(publications_data).length + " latest publications</a> listed in <a href=\"https://dblp.uni-trier.de/\" target=\"_blank\">dblp</a>, we identified entities and phrases that characterize the scholar's competences. Click on a pie slice to inspect further competences.";
+    var dropdown = document.createElement("div");
+    dropdown.id = "pubDropMenu";
+    dropdown.className = "dropdown-menu";
+    var titles = Object.keys(publications_data);
+    titles.sort();
+    for(var i=0; i<titles.length; i++) {
+      if(i > 0) {
+        dropdown.innerHTML += "<div class=\"dropdown-divider\"></div>";
+      }
+
+      dropdown.innerHTML += "<a id=\"pubItem\" class=\"dropdown-item\" href=\"#\">" + titles[i] + "</a>";
+    }
+
+    document.getElementById("hint").appendChild(dropdown);
 		document.getElementById("hint").style.display = "block";
 		document.getElementById("div_table").style.display = "block";
     document.getElementById("div_table_view").style.display = "none";
@@ -1037,7 +1389,21 @@ function display_comment(clicked_id) {
 		document.getElementById("btn_Table").style.background = "#0b60a1";
 		document.getElementById("btn_Table").style.color = "#fff";
 		document.getElementById("div_table").style.display = "none";
-		document.getElementById("hint").innerHTML = "Competences of Researcher " + researcherName + " and their frequencies how often they appear over the latest 10 publications listed in <a href=\"https://dblp.uni-trier.de/\">dblp</a>. All competences are linked to <a href=\"https://wiki.dbpedia.org/\">DBpedia</a> URIs obtained from <a href=\"https://www.dbpedia-spotlight.org/\" target=\"_blank\">DBpedia Spotlight</a>. Click on a pie slice and inspect the provenance. The category is obtained from the <a href=\"https://cso.kmi.open.ac.uk\" target=\"blank\">CSO Ontology</a>.";
+    document.getElementById("hint").innerHTML = "Competences of Researcher " + researcherName + " and their frequencies how often they appear over the <a id=\"pubMenu\" href=\"#\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">latest " + Object.keys(publications_data).length + " publications</a> listed in <a href=\"https://dblp.uni-trier.de/\">dblp</a>. All competences are linked to <a href=\"https://wiki.dbpedia.org/\">DBpedia</a> URIs obtained from <a href=\"https://www.dbpedia-spotlight.org/\" target=\"_blank\">DBpedia Spotlight</a>. Click on a pie slice and inspect the provenance. The category is obtained from the <a href=\"https://cso.kmi.open.ac.uk\" target=\"blank\">CSO Ontology</a>.";
+    var dropdown = document.createElement("div");
+    dropdown.id = "pubDropMenu";
+    dropdown.className = "dropdown-menu";
+    var titles = Object.keys(publications_data);
+    titles.sort();
+    for(var i=0; i<titles.length; i++) {
+      if(i > 0) {
+        dropdown.innerHTML += "<div class=\"dropdown-divider\"></div>";
+      }
+
+      dropdown.innerHTML += "<a id=\"pubItem\" class=\"dropdown-item\" href=\"#\">" + titles[i] + "</a>";
+    }
+
+    document.getElementById("hint").appendChild(dropdown);
     document.getElementById("div_table_view").style.display = "block";
 	}
 

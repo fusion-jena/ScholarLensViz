@@ -294,3 +294,33 @@ div.entity_window {
     pointer-events: none;
     padding: 10px;
 }
+
+div.tool_pub {
+    position: absolute;
+    text-align: left;
+    color: #ECF0F1;
+    padding: 2px;
+    font: 16px sans-serif;
+    background: #3C80B4;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+#pubMenu, #pubMenu:hover {
+    color: #3CACE4;
+    background: none;
+    border: none;
+}
+
+#pubDropMenu {
+  max-width: 65%;
+  height: auto;
+  max-height: 500px;
+  overflow-x: hidden;
+}
+
+#pubItem {
+  word-wrap: break-word ;
+  white-space: normal;
+}
