@@ -24,7 +24,8 @@ download ScholarLensViz, navigate to the ScholarLensViz/server folder and run
 
 ### Settings
 
-Edit the knowledgeBase.json and add the URL to the profile graph and the NodeJS port
+Edit the server/views/localFuseki.json file and add the URL to the profile graph and the NodeJS port of your local installation. An example configuration assuming that Fuseki is running on the default port 3030 and Node running on port 3666 looks like that: (quering a graph called 'ScholarLensViz')
+
 
 {
   "fuseki": "http://localhost:3030/ScholarLensViz",
@@ -56,11 +57,6 @@ SELECT DISTINCT ?uri (COUNT(?uri) AS ?count) WHERE{
 GROUP BY ?uri ORDER BY DESC(?count)
 ```
 
-The knowledge base and dataset used need to be defined in the following file: /schema/getURICount.js and /schema/getCompRecSentences.js
-An example configuration assuming that Fuseki is running on the default port 3030 looks like that: (quering a graph called 'ScholarLensViz')
-
-```var url ='http://localhost:3030/scholarLensViz/sparql';```
-
 
 ### Running the Server
 Now you can start the server on the command line with
@@ -70,6 +66,12 @@ Now you can start the server on the command line with
 Open your browser and go to http://localhost:3666/ - then you should see the example user profile (R4) in a pie chart.
 
 ## Changelog
+
+30.10.2020 release 2.1
+* local config file added
+* URLs shortened
+* local storage added for faster loading
+* UI improved (buttons added, a list of all papers used is now provided)
 
 06.08.2020 release 2.0
 * d3 libraries updated
