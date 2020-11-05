@@ -69,7 +69,6 @@ A running demo can be found on our server:
 
 https://dev.gfbio.org/scholar/
 
-The URL published in the paper (https://dev.gfbio.org/scholar/) is currently under maintenance and will be back soon.
 
 ## Changelog
 
