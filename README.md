@@ -92,4 +92,4 @@ The URL published in the paper (https://dev.gfbio.org/scholar/) is currently und
 ScholarLensViz is distributed under the terms of the GNU LGPL v3.0. (https://www.gnu.org/licenses/lgpl-3.0.en.html) You can find a copy of the license in the pipeline folder.
 
 ## Citation
-Löffler, F., Wesp, V., Babalou, S., Kahn, P., Lachmann, R., Sateli, B., Witte, R., König-Ries, B. (2020). ScholarLensViz: A VisualizationFramework for Transparency in Semantic User Profiles. Proceedings of the ISWC 2020 Satellite Tracks (Posters & Demonstrations, Industry, and Outrageous Ideas) co-located with 19th International Semantic Web Conference (ISWC 2020), Virtual Conference, November 1 - 6, 2020.
+Löffler, F., Wesp, V., Babalou, S., Kahn, P., Lachmann, R., Sateli, B., Witte, R., König-Ries, B. (2020). ScholarLensViz: A VisualizationFramework for Transparency in Semantic User Profiles. Proceedings of the ISWC 2020 Satellite Tracks (Posters & Demonstrations, Industry, and Outrageous Ideas) co-located with 19th International Semantic Web Conference (ISWC 2020), Virtual Conference, November 1 - 6, 2020. http://ceur-ws.org/Vol-2721/paper485.pdf
