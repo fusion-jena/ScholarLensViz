@@ -12,7 +12,7 @@
     "csv-parser": "^2.3.2",
     "debug": "^4.1.1",
     "express": "^4.17.1",
-    "fast-csv": "^4.1.1",
+    "fast-csv": "^4.3.6",
     "jquery": "^3.5.1",
     "morgan": "^1.10.0",
     "promise": "^8.1.0",
