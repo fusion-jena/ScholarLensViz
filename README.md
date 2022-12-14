@@ -67,7 +67,7 @@ Open your browser and go to http://localhost:3666/ - then you should see the exa
 ## Demo
 A running demo can be found on our server:
 
-https://dev.gfbio.org/scholar/
+https://dev.gfbio.uni-jena.de/scholar/
 
 
 ## Changelog
